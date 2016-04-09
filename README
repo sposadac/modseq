@@ -1,0 +1,4 @@
+Compile PANDAseq with plugin qualString.c
+-> Type in the terminal: pandaxs qualString.c
+
+
