@@ -190,76 +190,88 @@ if (run[3] == 1) {
     keep <- ls()
   } 
   
-  cat("Module-table used: \"", mod.filename, ".csv\". \n", sep = "")
+  ## Loading module-table
+  cat("Module-table used: \"", in.modDir, mod.filename, ".csv\". \n", sep = "")
   patterns <- 
-    data.frame(read.csv(paste(in.modDir, mod.filename, ".csv", sep = ""),
-                        header = TRUE, sep = ",", dec = "."), 
-               stringsAsFactors = FALSE)
+    data.frame(
+      read.csv(file = file.path(in.modDir, paste(mod.filename, ".csv", sep = "")),
+               header = TRUE, sep = ",", dec = "."), stringsAsFactors = FALSE
+      )
   num.cores <- detectCores()
-  if (paired.flag == 1) {  # Paired reads (i.e. "PE")
-    if (file.exists(paste("./DATA/PAIRED/FASTA/", out.filename.run2,
-                          "_PANDAcombined.fasta", sep = ""))) {
-      reads.subj <- readDNAStringSet(
-        file = paste("./DATA/PAIRED/FASTA/", out.filename.run2, 
-                     "_PANDAcombined.fasta", sep = ""), format = "fasta", 
-        use.names = TRUE)
+  
+  if (paired.flag == 1) {  
+    
+    ## Paired reads 
+    cat("Read mapping of paired reads")
+    in.file <- file.path(wdir, "data/paired/fasta", 
+                         paste(out.filename.run2, "_PANDAseq.fasta", sep = ""))
+    if (file.exists(in.file)) {
+      # Must be format = "fasta", because when a FASTQ file is given as input, all
+      # the sequences must have the same length
+      reads.subj <- 
+        readDNAStringSet(file = in.file, format = "fasta", use.names = TRUE)
+      cat("PE-reads file: ", in.file, ".\n")
     } else {
-      stop("File \"", paste("./DATA/PAIRED/FASTA/", out.filename.run2, 
-                            "_PANDAcombined.fasta", sep = ""), "\" not found. \n")
+      stop("File \"", in.file, "\" not found. \n")
     }
-  } else if (paired.flag == 0) {  # Unpaired reads
-    if (qtrim.flag == 0) {  # Unpaired and untrimmed reads - raw reads
+    
+  } else if (paired.flag == 0) {  
+    
+    ## Unpaired reads
+    if (qtrim.flag == 0) {  
+      
+      ## Unpaired and untrimmed reads - raw reads 
       if (seq.mode == "SE") {
-        reads.subj <- readDNAStringSet(
-          file = paste(in.seqDir, in.filename, sep = ""), format = 
-            "fastq", use.names = TRUE) 
+        
+        cat("Read mapping of untrimmed and non-paired reads")
+        in.file <- file.path(in.seqDir, paste(in.filename, ".fastq", sep = ""))
+        cat("Sequencing-reads file: ", in.file, ".\n")
+        
       } else if (seq.mode == "PE") {
+        
+        cat("Read mapping of untrimmed and unpaired reads")
         if (paired.file == "f") {
-          reads.subj <- readDNAStringSet(
-            file = paste(in.seqDir, forward.filename, sep = ""), 
-            format = "fastq", use.names = TRUE) 
+          in.file <- file.path(in.seqDir,  
+                               paste(forward.filename, ".fastq", sep = ""))
+          cat("Forward-reads file: ", in.file, ".\n")
         } else if (paired.file == "r") {
-          reads.subj <- readDNAStringSet(
-            file = paste(in.seqDir, reverse.filename, sep = ""), 
-            format = "fastq", use.names = TRUE) 
+          in.file <- file.path(in.seqDir,  
+                               paste(reverse.filename, ".fastq", sep = ""))
+          cat("Reverse-reads file: ", in.file, ".\n")
         }
-      }        
-    } else {  # Unpaired, but trimmed reads 
-      if (seq.mode == "SE" || paired.file == "f") {
-        if (file.exists(paste("./DATA/PROCESSED/FASTA/", out.filename.run1, 
-                              "_1_nQtrim.fasta", sep = ""))) {
-          reads.subj <- readDNAStringSet(
-            file = paste("./DATA/PROCESSED/FASTA/", out.filename.run1, 
-                         "_1_nQtrim.fasta", sep = ""), format = "fasta", 
-            use.names = TRUE) 
-        } else {
-          stop("File \"", paste("./DATA/PROCESSED/FASTA/", out.filename.run1,
-                                "_1_nQtrim.fasta", sep = ""), "\" not found", 
-               ".\n")
-        }
-      } else if (paired.file == "r") {
-        if (file.exists(paste("./DATA/PROCESSED/FASTA/", out.filename.run1, 
-                              "_2_nQtrim.fasta", sep = ""))) {
-          reads.subj <- readDNAStringSet(
-            file = paste("./DATA/PROCESSED/FASTA/", out.filename.run1, 
-                         "_2_nQtrim.fasta", sep = ""), format = "fasta", 
-            use.names = TRUE) 
-        } else {
-          stop("File \"", paste("./DATA/PROCESSED/FASTA/", out.filename.run1,
-                                "_2_nQtrim.fasta", sep = ""), "\" not found",
-               ".\n")
-        }
+        
       }
+      reads.subj <- 
+        readDNAStringSet(file = in.file, format = "fastq", use.names = TRUE)
+      
+    } else {   
+      
+      ## Unpaired, but trimmed reads
+      cat("Read mapping of trimmed but non-paired reads")
+      if (seq.mode == "SE" || paired.file == "f") { 
+        in.file <- file.path(wdir, 'data/processed/fasta', 
+                            paste(out.filename.run1, "_1_nQtrim.fasta", sep = ""))
+      } else if (paired.file == "r") {
+        in.file <- file.path(wdir, 'data/processed/fasta', 
+                             paste(out.filename.run1, "_2_nQtrim.fasta", sep = ""))
+      }
+      if (file.exists(in.file)) {
+        reads.subj <- 
+          readDNAStringSet(file = in.file, format = "fasta", use.names = TRUE) 
+        cat("Input reads file: ", in.file, ".\n")
+      } else {
+        stop("File \"", in.file, "\" not found.\n")
+      }
+      
     }
   }
   reads.subj.len <- length(reads.subj)
   
   if (map.mode == "gls") {
     
-    # TODO: verbose level (display info per search round?), 
-    # TODO: map.mode pairwise alignment
-    
-    source(paste(wdir, '/functions/Search_vmatchV2.R', sep = ""))
+    #**TODO**: verbose level (display info per search round?), 
+    #**TODO**: map.mode pairwise alignment
+    source(file.path(wdir, 'R/functions/Search_vmatchV2.R'))
     Nsearch <- "Ambiguous matches enabled"
     mod.tot <- ncol(patterns)
     
@@ -269,6 +281,7 @@ if (run[3] == 1) {
           "N). \n")
     }
     
+    ## Pattern search
     ti.search <- Sys.time()
     res.list <- list()
     res.list[[1]] <-  names(reads.subj)
@@ -318,51 +331,60 @@ if (run[3] == 1) {
     }
     cat("Runtime:", round(as.numeric(
       difftime(Sys.time(), ti.search, units = "mins")), digits = 4), "min.\n")
-    save(res.list, 
-         file = paste(out.dir, "resList_", res.listName, ".rda", sep = ""))
     cat("Pattern search completed!\n")
+    out.file <- 
+      file.path(out.dir, paste("resList_", res.listName, ".rda", sep = ""))
+    cat("Exporting list containig results of the read mapping: \"", out.file,
+        "\".\n", sep = "")
+    save(res.list, file = out.file)
+    
     if (mem.trace) {
       memTrace <- c(memTrace, MemTrace())
     }
     
-    cat("Saving and plotting search-results ...\n")
-    # Reformat counts as data.frame
+    cat("Saving and plotting results of the read mapping...\n")
+    ## Reformatting counts as data.frame
     res.counts <- 
-      data.frame("Round" = c("Input-data", paste("Mod. ", seq_len(mod.tot), "/",
-                                                 mod.tot, sep ="")),
+      data.frame("Round" = 
+                   c("Input-data", paste("Mod. ", seq_len(mod.tot), "/", mod.tot, 
+                                         sep ="")),
                  "Counts" = res.counts)  
     if (gls.direction == "r") { 
       res.counts$Round <- 
         factor(res.counts$Round, 
                levels = c(levels(res.counts$Round)[1], 
                           rev(levels(res.counts$Round)[2:(mod.tot+1)])))
-      print(paste("Found ", res.counts[2, 2], " module combinations in ",
-                  reads.subj.len, " reads (", 
-                  round(res.counts[2, 2] * 100 / reads.subj.len, 
-                        digits = 2), "%)", sep = ""))
+      print(
+        paste("Found ", res.counts[2, 2], " module-combinations in ",
+              reads.subj.len, " reads (", 
+              round(res.counts[2, 2] * 100 / reads.subj.len, digits = 2), "%)",
+              sep = "")
+        )
     } else {
       print(paste("Found ", res.counts[nrow(res.counts), 2], 
-                  " module combinations in ", reads.subj.len, " reads (",
+                  " module-combinations in ", reads.subj.len, " reads (",
                   round(res.counts[nrow(res.counts), 2] * 100 / reads.subj.len, 
                         digits = 2), "%)", sep = ""))
     }
-    cat("Printing module-counts plot as \"", out.dir, res.counts.filename,
-        "_graphs.pdf\".\n", sep = "")
-    pl.patCounts <- ggplot(res.counts, aes(x = Round, y = Counts, 
-                                           ymax = max(Counts)*1.1))
-    pl.patCounts <- pl.patCounts + geom_bar(stat = "identity") + 
+    
+    ### Module-counts plot
+    out.file <- 
+      file.path(out.dir, paste(res.counts.filename, "_graph.pdf", sep = ""))
+    cat("Printing module-counts plot as \"", out.file, "\".\n", sep = "")
+    pl.patCounts <- 
+      ggplot(res.counts, aes(x = Round, y = Counts, ymax = max(Counts) * 1.1))
+    pl.patCounts <-
+      pl.patCounts + geom_bar(stat = "identity") + 
       labs(x = "Search round", y = "Counts") +  
-      ggtitle(paste("ModSeq | Module-counts (", Nsearch,")", 
-                    sep = "")) + theme_bw() + 
+      ggtitle(paste("ModSeq | Module-counts (", Nsearch,")", sep = "")) +
+      theme_bw() + 
       theme(text = element_text(size = 14), 
             plot.title = element_text(face = "bold", size = 16)) + 
       annotate("text", x = Inf, y = -Inf, label = run.info, hjust = 1.1, 
                vjust = -0.3, cex = 3) + 
       geom_text(aes(label = Counts), size = 5, hjust = 0.5, vjust = -0.2, 
                 position = "stack")
-    ggsave(filename = paste(oout.dir, res.counts.filename, "_graph.pdf", 
-                            sep = ""), plot = pl.patCounts, paper = "a4r", 
-           width = 12)
+    ggsave(filename = out.file, plot = pl.patCounts, paper = "a4r", width = 12)
     
     ### Distribution of modular variants per search round
     mod.number <- sapply(patterns, function(x) length(na.omit(x)))
@@ -378,7 +400,7 @@ if (run[3] == 1) {
     
     var.counts <- 
       data.frame(matrix(ncol = 3, 
-                        dimnames = list(c(""), c("module","variant","freq"))))
+                        dimnames = list(c(""), c("module", "variant", "freq"))))
     var.counts[1, ] <- c(0, NA, reads.subj.len)
     var.counts[2:(sum(mod.number) + 1), 1] <- rep(seq(mod.tot), mod.number)
     var.counts[2:(sum(mod.number) + 1), 2] <- 
@@ -387,14 +409,16 @@ if (run[3] == 1) {
                       mc.cores = num.cores))
     for (i in seq_len(mod.tot)) {
       mod.aux <- 
-        data.frame(read.csv(paste(out.dir, res.counts.filename, '_round_',
-                                  i, '_of_', mod.tot, '.csv', sep = ""), 
-                            nrow = mod.comb.cumprod[i], header = TRUE, 
-                            row.names = 1))
+        data.frame(
+          read.csv(
+            file.path(out.dir, paste(res.counts.filename, '_round_', i, '_of_',
+                                     mod.tot, '.csv', sep = "")), 
+            nrow = mod.comb.cumprod[i], header = TRUE, row.names = 1)
+          )
       var.counts[(mod.number.cumsum[i] + 1):(mod.number.cumsum[i] + mod.number[i]), 3] <-
-        unlist(mclapply(seq_len(mod.number[i]), 
-                        function(j) sum(mod.aux[seq(j, mod.comb.cumprod[i], 
-                                                    mod.number[i]), 1]),
+        unlist(mclapply(
+          seq_len(mod.number[i]), 
+          function(j) sum(mod.aux[seq(j, mod.comb.cumprod[i], mod.number[i]), 1]),
                         mc.cores = num.cores))
     }
     rm(mod.aux)
@@ -410,11 +434,15 @@ if (run[3] == 1) {
       unlist(mclapply(names(which(table(var.counts$module) == 1)),
                       function(x) which(x == var.counts$module), 
                       mc.cores = num.cores))] <- NA
-    cat("Printing modular variant counts plot as \"",out.dir,
-        res.counts.filename, "_modularVariantsDistribution_graph.pdf\".\n",
+    out.file <- 
+      file.path(out.dir, 
+                paste(res.counts.filename, "_modularVariantsDistribution", 
+                      "_graph.pdf", sep = ""))
+    cat("Printing modular-variant counts plot as: \"", out.file, "\".\n", 
         sep = "")
-    pl.patCounts <- ggplot(var.counts, aes(x = module, y = freq, 
-                                           ymax = max(res.counts$Counts) * 1.1))
+    pl.patCounts <- 
+      ggplot(var.counts, aes(x = module, y = freq, 
+                             ymax = max(res.counts$Counts) * 1.1))
     pl.patCounts <- pl.patCounts + 
       geom_bar(stat = "identity", aes(fill = factor(variant), colour = "gray"), 
                alpha = 0.8) + labs(x = "Search round", y = "Counts") + 
@@ -425,70 +453,80 @@ if (run[3] == 1) {
       theme(text = element_text(size = 14),
             plot.title = element_text(face = "bold", size = 16), 
             legend.title = element_blank()) +
-      geom_text(data = data.frame(x = seq_len(mod.tot + 1), 
-                                  num = c(NA, mod.number),
-                                  y = res.counts$Counts), 
+      geom_text(data = 
+                  data.frame(x = seq_len(mod.tot + 1), num = c(NA, mod.number),
+                             y = res.counts$Counts), 
                 aes(label = y, x = x, y = y, 
                     ymax = max(res.counts$Counts) * 1.1), size = 5, hjust = 0.5,
                 vjust = -0.2, position = "stack") + 
-      geom_text(data = data.frame(x   = seq_len(mod.tot + 1), 
-                                  num = c(NA, mod.number),
-                                  y   = rep(0, mod.tot + 1)),
+      geom_text(data = 
+                  data.frame(x = seq_len(mod.tot + 1), num = c(NA, mod.number),
+                             y = rep(0, mod.tot + 1)),
                 aes(label = num, x = x, y = y, 
                     ymax = max(res.counts$Counts) * 1.1), size = 4, hjust = 0.5, 
                 vjust = 1.1, position = "stack")
-    ggsave(paste(out.dir, res.counts.filename, "_modularVariants", 
-                 "Distribution_graph.pdf", sep = ""), pl.patCounts, 
-           paper = "a4r", width = 12) 
+    ggsave(out.file, pl.patCounts, paper = "a4r", width = 12) 
     
     var.counts$module <- c("0", rep(names(patterns), mod.number))
-    cat('Exporting: \"', ouout.dir, res.counts.filename, '_modularVariants',
-        'Distribution_table.csv. \n', sep = "")
-    write.csv(var.counts, paste(out.dir, res.counts.filename, 
-                                '_modularVariantsDistribution_table.csv', 
-                                sep = ""))
+    out.file <- 
+      file.path(out.dir, paste(res.counts.filename, "_modularVariants", 
+                               "Distribution_table.csv", sep = ""))
+    cat("Exporting distribution of modular variants per search round as table:",
+        " \"", out.file, ".\" \n", sep = "")
+    write.csv(var.counts, out.file)
     
     if (sum(gls.mma > 0) > 0) {
       cat("Maximum mismatch allowance for module", which(gls.mma > 0), "was", 
           gls.mma[which(gls.mma > 0)], ".\n")
     }
     
+    ### Plot of memory consumption
     if (mem.trace) {
-      source(paste(wdir, '/functions/plotMemProfile.R', sep = ""))
-      plotMemProfile((min(as.numeric(
-        unlist(sapply(memList, function(x) strsplit(x, split = "Mb"), 
-                      USE.NAMES = FALSE)))) %/% 10) * 10, ((max(as.numeric(
-                        unlist(sapply(memList, function(x) strsplit(x, split = "Mb"), 
-                                      USE.NAMES = FALSE)))) %/% 10) * 10 + 10), 
+      source(file.path(wdir, 'R/functions/plotMemProfile.R'))
+      plotMemProfile(
+        (min(
+          as.numeric(unlist(
+            sapply(memList, function(x) strsplit(x, split = "Mb"), 
+                   USE.NAMES = FALSE)))) %/% 10) * 10, 
+        ((max(as.numeric(unlist(
+          sapply(memList, function(x) strsplit(x, split = "Mb"), 
+                 USE.NAMES = FALSE)))) %/% 10) * 10 + 10), 
         (min(memTrace[offset_mem:(mod.tot + offset_mem)]) %/% 10) * 10, 
         ((max(memTrace[offset_mem:(mod.tot + offset_mem)]) %/% 10) * 10 + 10), 
         res.listName, path = out.dir)
     }
     
+    ### Plot of repeated hits (reads that were mapped to several 
+    #   module-combination)
     aux <- unlist(res.list, use.names = FALSE)
     if (sum(duplicated(aux)) > 0) {
+      
+      out.file <- 
+        file.path(out.dir, 
+                  paste(res.listName, "_repeated_hits_graph.pdf", sep = ""))
+      cat("Printing plot of repeated-hits in: \"", out.file, "\".\n", sep = "")
       rep.tab <- table(aux)
-      pdf(paste(out.dir, res.listName, "_repeated_hits_graph.pdf", 
-                sep = ""))
+      pdf(out.file)
       plot(as.numeric(rep.tab), type = "h", xlab = "Reads", ylab = "Counts",
            main = "Read mapping")
       dev.off()
-      if (!file.exists(paste(in.modDir, mod.filename, "_modComb.fasta", 
-                             sep = ""))) {
-        source(paste(wdir, '/functions/ModuleCombinationsGen.R', sep = ""))
+      
+      mod.file <- 
+        file.path(in.modDir, paste(mod.filename, "_modComb.fasta", sep = ""))
+      if (!file.exists(mod.file)) {
+        source(file.path(wdir, 'R/functions/ModuleCombinationsGen.R'))
         ModuleCombinationsGen(mod.filename, pattern = patterns, 
-                              num.cores = num.cores)
+                              num.cores = num.cores, in.modDir)
       }
-      mod.comb <- 
-        readDNAStringSet(paste(in.modDir, mod.filename, "_modComb.fasta", 
-                               sep = ""))
+      mod.comb <- readDNAStringSet(mod.file)
       mod.comb.len <- length(mod.comb)
       res.list.lengths <- 
         unlist(mclapply(res.list, length, mc.cores = num.cores), 
                use.names = FALSE)
-      # To get the name of the module combinations. 
+      
+      ## To get the name of the module-combinations. 
       if (sum(names(res.list) == mod.comb) != mod.comb.len) {
-        # Only needed if the order is not preserved
+        ## Only needed if the order is not preserved
         mod.comb.seq2names <- names(mod.comb)
         names(mod.comb.seq2names) <- mod.comb
         res.list.name <- 
@@ -509,20 +547,25 @@ if (run[3] == 1) {
       df.rep.hits <- data.frame("readID" = rep(rep.hits, rep.tab[rep.tab > 1]),
                                 "refID"  = aux.rep.hits,
                                 "refSEQ" = as.character(mod.comb[aux.rep.hits]))
+      out.file <- 
+        file.path(out.dir, 
+                  paste(res.listName, "_repeated_hits_table.csv", sep = ""))
+      cat("Exporting repeated-hits as table: \"", out.file, ".\" \n", sep = "")
+      write.csv(df.rep.hits, out.file, row.names = TRUE)
+      print(
+        paste(rep.hits, "- read was counted", rep.tab[rep.tab > 1], "times"))
       
-      write.csv(df.rep.hits, paste(out.dir, res.listName, 
-                                   "_repeated_hits_table.csv", sep = ""),
-                row.names = TRUE)
-      print(paste(rep.hits, "- read was counted", rep.tab[rep.tab > 1], 
-                  "times"))
-      save(df.rep.hits, file = paste(out.dir, res.listName, 
-                                     "_repeated_hits.rda", sep = ""))
+      out.file <- 
+        file.path(out.dir, paste(res.listName, "_repeated_hits.rda", sep = ""))
+      cat("Exporting list containig repeated-hits: \"", out.file, "\".\n",
+          sep = "")
+      save(df.rep.hits, file = out.file)
       cat(sum(rep.tab == 1), "reads mapped exactly 1 time. \n")
       cat(sum(rep.tab > 1), " reads (", 
           round(sum(rep.tab > 1) * 100 / reads.subj.len, digit = 2), 
           "%) mapped > 1 times. \n", sep = "")
       cat("Corrected for multiple hits: Found ", length(rep.tab), 
-          " module combinations in ", reads.subj.len, " reads (", 
+          " module-combinations in ", reads.subj.len, " reads (", 
           round(length(rep.tab) / reads.subj.len * 100, digits = 2), "%).\n",
           sep = "")
       if (run[4] == 1) {
@@ -531,7 +574,7 @@ if (run[3] == 1) {
       }
     } else {
       cat("All mapped reads are mapped exactly 1 time (i.e. mapped to 1 ",
-          "module combination). \n")
+          "module-combination). \n")
     }
     
     if (run[4] == 1) {
@@ -542,20 +585,28 @@ if (run[3] == 1) {
   } else if (map.mode == "bwa") {
     
     if (paired.flag == 1) {  # Paired reads
-      reads.file <- paste("./DATA/PAIRED/", out.filename.run2, 
-                          "_PANDAseq.fastq", sep = "")
+      
+      reads.file <- 
+        file.path(wdir, "data/paired", 
+                  paste(out.filename.run2, "_PANDAseq.fastq", sep = ""))
+      
     } else if (paired.flag == 0) { 
+      
       if (qtrim.flag == 0) { # Unpaired and untrimmed files - raw files
         if (seq.mode == "SE") {
-          reads.file <- paste(in.seqDir, in.filename, sep = "")
+          reads.file <- 
+            file.path(in.seqDir, paste(in.filename, ".fastq", sep = ""))
         } else if (seq.mode == "PE") {
           if (paired.file == "f") {
-            reads.file <- paste(in.seqDir, forward.filename, sep = "")
+            reads.file <- 
+              file.path(in.seqDir, paste(forward.filename, ".fastq", sep = ""))
           } else if (paired.file == "r") {
-            reads.file <- paste(in.seqDir, reverse.filename, sep = "")
+            reads.file <- 
+              file.path(in.seqDir, paste(reverse.filename, ".fastq", sep = ""))
           }
         }
       } else { # Unpaired, but trimmed files 
+        ###****HERE****
         if (seq.mode == "SE" || paired.file == "f") {
           reads.file <- paste("./DATA/PROCESSED/", out.filename.run1, 
                               "_1_nQtrim.fastq", sep = "") 
@@ -564,6 +615,7 @@ if (run[3] == 1) {
                               "_2_nQtrim.fastq", sep = "")
         }
       }
+      
     }
     if (!file.exists(reads.file)) {
       stop ("File \"", reads.file, "\" not found.\n")
@@ -578,7 +630,7 @@ if (run[3] == 1) {
         keep <- append(keep, c("ModuleCombinationsGen"))
       }
     }
-    # indexing reference sequences - module combinations
+    # Indexing reference sequences -- module-combinations
     if (!file.exists(paste(in.modDir, mod.filename, "_modComb.fasta.bwt", 
                            sep = ""))) {
       run.index <- paste(bwa.path, 'bwa index ', in.modDir, mod.filename, 
@@ -723,7 +775,7 @@ if (run[3] == 1) {
     reads.map <- 
       sum(res.sam.realn[["flag"]] == 0 | res.sam.realn[["flag"]] == 16) + 
       reads.dupl
-    cat("Found ", reads.map, " module combinations in ", reads.subj.len, 
+    cat("Found ", reads.map, " module-combinations in ", reads.subj.len, 
         " reads (", round(reads.map * 100 / reads.subj.len, digits = 2), 
         "%). \n", sep = "")
     cat("Found", reads.dupl, " marked reads as duplicates (", 

@@ -10,9 +10,9 @@ Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
   if (!file.exists(file.path(wdir, 'data/paired/'))) {
     dir.create(file.path(wdir, 'data/paired/'))
   }
-  #if (!file.exists(file.path(wdir, 'data/paired/fasta/'))) {
-  #  dir.create(file.path(wdir, 'data/paired/fasta/'))
-  #}
+  if (!file.exists(file.path(wdir, 'data/paired/fasta/'))) {
+    dir.create(file.path(wdir, 'data/paired/fasta/'))
+  }
   
   ## Pandaseq options
   # -C filter  Load a pluggable filter module.
@@ -51,8 +51,8 @@ Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
   cat("Output files: \n")
   cat("Fastq-file: \"", wdir, "data/paired/", out.filename.run2, 
       "_PANDAseq.fastq\",\n", sep = "")
-  #cat("Fasta-file: \"", wdir, "data/paired/fasta/", out.filename.run2,
-  #    "_PANDAseq.fasta\",\n", sep = "")
+  cat("Fasta-file: \"", wdir, "data/paired/fasta/", out.filename.run2,
+      "_PANDAseq.fasta\",\n", sep = "")
   cat("Unaligned reads: \"", wdir, "data/paired/", out.filename.run2, 
       "_unalignedPANDAseq.fastq\",\n", sep = "")
   cat("Log-file: \"", wdir, "data/paired/logPANDAseq_", out.filename.run2, 
@@ -61,7 +61,12 @@ Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
   PandaseqPaired <- 
     readFastq(dirPath = file.path(wdir, 'data/paired'), 
               pattern = paste(out.filename.run2, "_PANDAseq.fastq", sep = ""))
-
+  #Temporary work-around
+  writeFasta(PandaseqPaired, 
+             file = file.path(wdir, 'data/paired/fasta', paste(out.filename.run2,
+                              "_PANDAseq.fasta", sep = ""))
+             )
+  
   if (out.ssplot) {
     cat("Paired-end assembled reads: summary statistics. \n")
     plot.input1 <- width(readF1) 

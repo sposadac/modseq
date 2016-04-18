@@ -19,9 +19,9 @@ run.info <- paste("ModSeq | ", format(Sys.time(),"%Y%m%d"), sep = "")
 ### RUNNING MODE
 ## Which option to run (0=OFF, 1=ON)
 run <- rep(0,5)
-run[1] <- 1  # Pre-processing (quality trimming) and plots.
-run[2] <- 1  # Run paired-end read assembly.
-run[3] <- 0  # Run pattern search / Read mapping.
+run[1] <- 0  # Pre-processing (quality trimming) and plots.
+run[2] <- 0  # Run paired-end read assembly.
+run[3] <- 1  # Run pattern search / Read mapping.
 run[4] <- 0  # Run analysis on the search (library composition, modular variants
              # abundacies)
 run[5] <- 0  # Run variant calling (mismatches and short indels)
@@ -74,7 +74,7 @@ out.ssplot   <- TRUE
 #              value: 1)
 qtrim.thold <- 10
 qtrim.3end  <- 1  # (0 = trimming at both ends, 1 = trimming at 3'-end only)
-qtrim.flag  <- 0  # (0 = untrimmed reads, 1 = trimmed reads)
+qtrim.flag  <- 1  # (0 = untrimmed reads, 1 = trimmed reads)
 
 ###################### PAIRED-END READ ASSEMBLY options #######################
 # paired.flag: Indicates which set of reads should be taken for the read mapping 
@@ -84,13 +84,13 @@ qtrim.flag  <- 0  # (0 = untrimmed reads, 1 = trimmed reads)
 # paired.file: If paired.flag is set to 0, select set of forward (f) or reverse 
 #              (r) reads. By default, it is set to "f". 
 #              Alternative - select "SE" sequencing mode.
-paired.flag <- 0  # (0 = unpaired reads, 1 = paired reads)
+paired.flag <- 1  # (0 = unpaired reads, 1 = paired reads)
 paired.file <- "f"  # Options: "f" - forward, "r" - reverse.
 
 ############################ READ MAPPING options #############################
 # map.mode: Options bwa, gls - Grep-like search, and grPA - greedy search/
 #           Pairwise alignement. By default bwa.
-map.mode <- "bwa"
+map.mode <- "gls"
 
 ## Grep-like search options
 # gls.ambiguity: Options - TRUE or FALSE. If TRUE (default), an ambiguous
