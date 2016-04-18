@@ -67,8 +67,8 @@ Run1_qualTrimming <- function(readF1, in.filename, wdir, out.filename.run1,
         "_1_nQtrim.fastq\" ...\n", sep = "")
     writeFastq(
       object = append(
-        readF1.nQtrim[width(readF1.nQtrim) != 0 && width(readF2.nQtrim) != 0],
-        readF1.nQtrim[width(readF1.nQtrim) == 0 || width(readF2.nQtrim) == 0]),
+        readF1.nQtrim[width(readF1.nQtrim) != 0 & width(readF2.nQtrim) != 0],
+        readF1.nQtrim[width(readF1.nQtrim) == 0 | width(readF2.nQtrim) == 0]),
       file = file.path(wdir, 'data/processed', 
                        paste(out.filename.run1, "_1_nQtrim.fastq", sep = "")),
       compress = FALSE
@@ -77,8 +77,8 @@ Run1_qualTrimming <- function(readF1, in.filename, wdir, out.filename.run1,
         "_2_nQtrim.fastq\" ...\n", sep = "")
     writeFastq(
       object = append(
-        readF2.nQtrim[width(readF1.nQtrim) != 0 && width(readF2.nQtrim) != 0], 
-        readF2.nQtrim[width(readF1.nQtrim) == 0 || width(readF2.nQtrim) == 0]),
+        readF2.nQtrim[width(readF1.nQtrim) != 0 & width(readF2.nQtrim) != 0], 
+        readF2.nQtrim[width(readF1.nQtrim) == 0 | width(readF2.nQtrim) == 0]),
       file = file.path(wdir, 'data/processed', 
                        paste(out.filename.run1, "_2_nQtrim.fastq", sep = "")),
       compress = FALSE
@@ -133,6 +133,15 @@ Run1_qualTrimming <- function(readF1, in.filename, wdir, out.filename.run1,
                    in.dirRaw = in.seqDir, forward.filename = forward.filename, 
                    reverse.filename  = reverse.filename) 
     }  
+    cat("Number of reads after quality trimming: ", length(readF1.nQtrim), 
+        " x 2 (mode: PE).\n", sep = "")
+    cat("Number of pairs of reads after quality trimming with non-zero length: ",
+        sum(width(readF1.nQtrim) != 0 & width(readF2.nQtrim) != 0), ".\n",
+        sep = "")
+    cat("Forward-reads: number of reads after quality trimming with non-zero length: ",
+        sum(width(readF1.nQtrim) != 0), ".\n", sep = "")
+    cat("Reverse-reads: number of reads after quality trimming with non-zero length: ", 
+        sum(width(readF2.nQtrim) != 0), ".\n", sep = "")
     return(list(readF1.nQtrim, readF2.nQtrim))
     
   } else if (seq.mode == "SE") {
@@ -172,7 +181,10 @@ Run1_qualTrimming <- function(readF1, in.filename, wdir, out.filename.run1,
                    type = "single", out.dir = out.dir, sample = FALSE,
                    in.dirRaw = in.seqDir, forward.filename = in.filename)
     }
+    cat("Number of reads after quality trimming: ", length(readF1.nQtrim), ".\n",
+        sep = "")
+    cat("Number of reads after quality trimming with non-zero length: ",
+        sum(width(readF1.nQtrim) != 0), ".\n", sep = "")
     return(readF1.nQtrim)
   }
-  
 }

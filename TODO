@@ -1,3 +1,8 @@
+Author: Susana Posada Cespedes
+-> User option to indicate if module-table contains module names and variant names
+-> Add R and functions subfolders to the search path (when modseq_main.R is run)
 -> Use fastqsampler
 -> fastq file after paired-end, read mapping and filtering
+-> Simulated data: use read simulators, such as GemSim 
+-> Consider using beta-binomial test of strand bias to account for systematic sequencing errors
 

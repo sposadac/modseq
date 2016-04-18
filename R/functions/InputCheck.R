@@ -1,6 +1,6 @@
 ### Running mode
 if (!exists("run")) {
-  warning("Unspecified running mode. \nObject \'run\' is set to vector with ",
+  warning("Unspecified running mode. \nObject \'run\' is set to vector of ",
           "zeros.")
   run <- rep(0, 5)
 }
@@ -52,27 +52,25 @@ if (!exists("seq.mode")) {
   seq.mode <- "PE"
 }
 if (seq.mode == "SE") {
-  forward.filename <- character(0)
-  reverse.filename <- character(0)
+  rm(forward.filename)
+  rm(reverse.filename)
   paired.file <- character(0)
   paired.flag <- as.integer(0)
   run[2] <- as.integer(0)
 } else if (seq.mode == "PE") {
-  in.filename <- character(0)
+  rm(in.filename)
 }
 
 #### Input files
 ## Raw sequencing data - input directory
 if (!exists("in.seqDir")) {
   warning("Object \'in.seqDir\' not found, set to default value: \"",
-          "./DATA/RAW/\".")
-  in.seqDir <- "./DATA/RAW/"
+          wdir, "/data/raw/\".")
+  in.seqDir <- file.path(wdir, "data/raw/")
 } else if (!is.character(in.seqDir)) {
-  warning("Invalid data type for \'in.seqDir\', \"", class(in.seqDir), "\".", 
-          "\nObject \'in.seqDir\' is set to \"./DATA/RAW/\".")
-  in.seqDir <- "./DATA/RAW/"
+  stop("Invalid data type for \'in.seqDir\', \"", class(in.seqDir), "\".")
 } else if (in.seqDir == "" || in.seqDir == " ") {
-  in.seqDir <- "./"
+  in.seqDir <- file.path(wdir)
 } 
 if (!file.exists(in.seqDir)) {
   stop ("Invalid directory for raw sequencing data files, \"", in.seqDir, 
@@ -116,14 +114,12 @@ if (seq.mode == "SE"){
 # Module-table - input directory
 if (!exists("in.modDir")) {
   warning("Object \'in.modDir\' not found, set to default value: \"",
-          "./MODULES/\".")
-  in.modDir <- "./MODULES/"
+          wdir, "/data/modules/\".")
+  in.modDir <- file.path(wdir, "data/modules/")
 } else if (!is.character(in.modDir)) {
-  warning("Invalid data type for \'in.modDir\', \"", class(in.modDir), "\".", 
-          "\nObject \'in.modDir\' is set to \"./MODULES/\".")
-  in.modDir <- "./MODULES/"
+  stop("Invalid data type for \'in.modDir\', \"", class(in.modDir), "\".")
 } else if (in.modDir == "" || in.modDir == " ") {
-  in.modDir <- "./"
+  in.modDir <- file.path(wdir)
 }
 if (!file.exists(in.modDir)) {
   stop("Invalid directory for module-table file, \"", in.modDir, "\". \n")
@@ -139,6 +135,48 @@ if (!exists("mod.filename")) {
   } else if (!file.exists(paste(in.modDir, mod.filename, '.csv', sep = ""))) {
     stop("File \"", in.modDir, mod.filename, ".csv\" not found. \n")
   } 
+}
+
+### Output files
+# Output directory
+if (!exists("out.dir")) {
+  warning("Object \'out.dir\' not found, set to default value: \"",
+          wdir, "/output/\".")
+  out.dir <- file.path(wdir, "output/")
+} else if (!is.character(out.dir)) {
+  stop("Invalid data type for \'out.dir\', \"", class(out.dir), "\".")
+} else if (out.dir == "" || out.dir == " ") {
+  out.dir <- file.path(wdir)
+}
+if (!file.exists(out.dir)) {
+  dir.create(file.path(out.dir))
+}
+
+if (!exists("out.filename")) {
+  warning("Object \'out.filename\' not found, set to default value: \"",
+          "out\".")
+  out.filename <- "out"
+} else if (!is.character(out.filename)) {
+  warning("Invalid data type for \'out.filename\', \"", class(out.filename),
+          "\".\nObject \'out.filename\' is set to \"out\".")
+  out.filename <- "out"
+}
+
+if (!exists("out.ssplot")) {
+  warning("Object \'out.ssplot\' not found, set to default value: \"",
+          "FALSE\".")
+  out.ssplot <- FALSE
+} else if (!is.logical(out.ssplot)) {
+  aux <- as.logical(out.ssplot)
+  if (is.na(aux)) { # e.g. when out.ssplot set to  "" or " "
+    warning("Invalid data type for \'out.ssplot\', \"", class(out.ssplot),
+            "\".\nObject \'out.ssplot\' is set to FALSE.")
+    out.ssplot <- FALSE
+  } else {
+    warning("Invalid data type for \'out.ssplot\', \"", class(out.ssplot), 
+            "\".\nObject \'out.ssplot\' is set to ", aux, ".")
+    out.ssplot <- aux
+  }
 }
 
 ### Quality trimming options

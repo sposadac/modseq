@@ -1,4 +1,5 @@
 # Author: S.Schmitt. Modified by S.Posada.
+##**TODO** use sample as user-defined option
 library(grid)
 library(gridExtra)
 IlluminaStat <- function(in.dir, pattern, SV_plotinputframe, SV_qcwd1, SV_qcwd2, 
