@@ -34,17 +34,19 @@ Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
   }
   cat("Forward-reads file: \"", f1, "\".\n", sep = "")
   cat("Reverse-reads file: \"", f2, "\".\n", sep = "")
-  #assign(paste("runPANDAseq_", out.filename.run2, sep = ""), 
-  #       paste("pandaseq -f ", f1, " -r ", f2, " -C qualString:data/paired", 
-  #             out.filename.run2, "_PANDAseq.fastq -B -F -w data/paired/fasta/",
-  #             out.filename.run2, "_PANDAseq.fasta -g data/paired/logPANDAseq_",
-  #             out.filename.run2, ".txt -U data/paired/", out.filename.run2,
-  #             "_unalignedPANDAseq.fastq", sep = ""))
-  assign(paste("runPANDAseq_", out.filename.run2, sep = ""),
-         paste("pandaseq -f ", f1, " -r ", f2, " -B -F -w data/paired/", 
-               out.filename.run2, "_PANDAseq.fastq -g data/paired/logPANDAseq_",
+  assign(paste("runPANDAseq_", out.filename.run2, sep = ""), 
+         paste("pandaseq -f ", f1, " -r ", f2, " -C qualString:data/paired", 
+               out.filename.run2, "_PANDAseq.fastq -B -F -w data/paired/fasta/",
+               out.filename.run2, "_PANDAseq.fasta -g data/paired/logPANDAseq_",
                out.filename.run2, ".txt -U data/paired/", out.filename.run2,
                "_unalignedPANDAseq.fastq", sep = ""))
+  ## Use when the plugin (qualString) is not available 
+  #  (see below how to output fasta)
+  #assign(paste("runPANDAseq_", out.filename.run2, sep = ""),
+  #       paste("pandaseq -f ", f1, " -r ", f2, " -B -F -w data/paired/", 
+  #             out.filename.run2, "_PANDAseq.fastq -g data/paired/logPANDAseq_",
+  #             out.filename.run2, ".txt -U data/paired/", out.filename.run2,
+  #             "_unalignedPANDAseq.fastq", sep = ""))
   cat("Running PANDAseq: PAired-eND Assembler for illumina sequences ...\n")
   system(get(paste("runPANDAseq_", out.filename.run2, sep = "")))
   cat("Paired-end read assembly done!\n")
@@ -61,11 +63,11 @@ Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
   PandaseqPaired <- 
     readFastq(dirPath = file.path(wdir, 'data/paired'), 
               pattern = paste(out.filename.run2, "_PANDAseq.fastq", sep = ""))
-  #Temporary work-around
-  writeFasta(PandaseqPaired, 
-             file = file.path(wdir, 'data/paired/fasta', paste(out.filename.run2,
-                              "_PANDAseq.fasta", sep = ""))
-             )
+  ## Temporary work-around (when plugin qualString is not available)
+  #writeFasta(PandaseqPaired, 
+  #           file = file.path(wdir, 'data/paired/fasta', paste(out.filename.run2,
+  #                            "_PANDAseq.fasta", sep = ""))
+  #           )
   
   if (out.ssplot) {
     cat("Paired-end assembled reads: summary statistics. \n")
