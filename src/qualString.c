@@ -15,7 +15,7 @@ static bool check_func(
 	const panda_result_seq *sequence,
 	struct data *data) {
 	size_t pos;
-	int it = sequence->forward_length - sequence->overlap - 1;
+	const int it = sequence->forward_length - sequence->overlap - 1;
 	char ntFor;
 	char ntRev;
 	char ntSeq;
@@ -25,36 +25,49 @@ static bool check_func(
 	panda_writer_append_c(data->writer, '@');
 	panda_writer_append_id(data->writer, &sequence->name);
 	panda_writer_append_c(data->writer, '\n');	
-	for (pos = 0; pos < sequence->sequence_length; pos++) {
+	
+    for (pos = 0; pos < sequence->sequence_length; pos++) {
 		panda_writer_append_c(data->writer, panda_nt_to_ascii(sequence->sequence[pos].nt));
 	}
-	panda_writer_append(data->writer, "\n+\n");
-	for (pos = 0; pos < sequence->sequence_length; pos++) {
-		qFor = (char) 0;
+	
+    panda_writer_append(data->writer, "\n+\n");
+	
+    for (pos = 0; pos < sequence->sequence_length; pos++) {
+		
+        qFor = (char) 0;
 		qRev = (char) 0; 
-		if(pos < sequence->forward_length) {
+		if (pos < sequence->forward_length) {
 			ntFor = sequence->forward[pos].nt; 
 			qFor = sequence->forward[pos].qual;
-		}  
-		else{ntFor = (char) 0;}
-		if(it < pos || it < 0){
-			if(sequence->reverse_length+it-pos >= 0) {
-				ntRev = sequence->reverse[sequence->reverse_length+it-pos].nt;
-				qRev = sequence->reverse[sequence->reverse_length+it-pos].qual;
+		} else { 
+            ntFor = (char) 0;
+        }
+
+		if (it < pos || it < 0) {
+			int idx = (int) sequence->reverse_length + it - (int) pos;
+            if (idx >= 0) {
+				ntRev = sequence->reverse[idx].nt;
+				qRev = sequence->reverse[idx].qual;
 			} 
-		} else{ntRev = (char) 0;}
+		} else {
+            ntRev = (char) 0;
+        }
+
 		ntSeq = sequence->sequence[pos].nt;		
-		if(ntSeq == ntFor && ntSeq == ntRev){
-			if(qFor >= qRev) {panda_writer_append_c(data->writer, 33 + qFor);} else if(qRev > qFor) {panda_writer_append_c(data->writer, 33 + qRev);}
-		} 
-		else if(ntSeq == ntFor) {
+		if (ntSeq == ntFor && ntSeq == ntRev) {
+			if (qFor >= qRev) {
+                panda_writer_append_c(data->writer, 33 + qFor);
+            } else if (qRev > qFor) {
+                panda_writer_append_c(data->writer, 33 + qRev);
+            }
+		} else if (ntSeq == ntFor) {
 			panda_writer_append_c(data->writer, 33 + qFor);
-		}
-		else if(ntSeq == ntRev) {
+		} else if (ntSeq == ntRev) {
 			panda_writer_append_c(data->writer, 33 + qRev);
 		}
 	}
-	panda_writer_append_c(data->writer, '\n');
+	
+    panda_writer_append_c(data->writer, '\n');
 	panda_writer_commit(data->writer);
 	return true;
 }
