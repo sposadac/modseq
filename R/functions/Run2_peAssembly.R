@@ -1,5 +1,5 @@
-##**TODO** Illumina-stat plots for the case of input directory provided by user 
-#          Use threads (option -T)
+## **TODO** Illumina-stat plots for the case of input directory provided by user 
+#           Use threads (option -T)
 Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
                             out.ssplot, forward.file, reverse.file, 
                             in.seqDir=NULL, len.rawData=NULL) { 
@@ -136,7 +136,7 @@ Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
                                               "_nQtrim", sep = ""))
         
       } else {
-        #**TODO**
+        # **TODO**
         # Error when forward.file have reads with length zero 
         # Sln: Search for "_subSet_wo0_1" in the in.seqDir
         #system(paste("ls ", file.path(in.seqDir), "*_subSet_wo0_1_nQtrim", sep = ""))

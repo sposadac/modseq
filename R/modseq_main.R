@@ -28,16 +28,14 @@ if (mem.trace) {
 Ti <- Sys.time()
 
 # Log-file
-if (file.exists(paste(out.dir, "/out_", out.filename.run2, "_run",
-                      paste(names(run)[which(run == 1)], collapse = "_"),
-                      ".txt",sep=""))) {
-  output <- file(paste(out.dir, "/out_", out.filename.run2, "_run",
-                       paste(names(run)[which(run == 1)], collapse = "_"),
-                       ".txt", sep=""), open = "at")
+log.file <- file.path(out.dir, 
+                      paste("/out_", out.filename.run2, "_run",
+                            paste(names(run)[which(run == 1)], collapse = "_"),
+                            ".txt", sep = ""))
+if (file.exists(log.file)) {
+  output <- file(log.file, open = "at")
 } else {
-  output <- file(paste(out.dir, "/out_", out.filename.run2, "_run",
-                       paste(names(run)[which(run == 1)], collapse = "_"),
-                       ".txt",sep=""), open = "wt")
+  output <- file(log.file, open = "wt")
 }
 sink(output, append = TRUE)
 
@@ -46,16 +44,26 @@ keep <- ls()
 
 # Read fastq-files
 if (run[1] == 1 || (run[2] == 1 && qtrim.flag == 0)) { 
+  
+  source(file.path('R/functions/plotQualityDistribution.R'))
   cat("Sequencing mode: \"", seq.mode, "\".\n", sep = "")
   if (seq.mode == "PE") {
     readF1 <- readFastq(dirPath = in.seqDir, pattern = forward.filename)
     readF2 <- readFastq(dirPath = in.seqDir, pattern = reverse.filename)
     len.rawData <- length(readF1)
+    # check
+    if (length(readF2) != len.rawData) {
+      stop("Number of reads in input files does not match: \n Forward set: ",
+           len.rawData, " reads, \n Reverse set: ", length(readF2), " reads.\n")
+    }
     cat("Number of reads: ", len.rawData, " x 2 (mode: PE).\n", sep = "")
+    plotQualityDistribution(readF1, forward.filename, out.dir)
+    plotQualityDistribution(readF2, reverse.filename, out.dir)
   } else if (seq.mode == "SE") {
     readF1 <- readFastq(dirPath = in.seqDir, pattern = in.filename)
     len.rawData <- length(readF1)
     cat("Number of reads: ", len.rawData, ".\n", sep = "")
+    plotQualityDistribution(readF1, in.filename, out.dir)
   }
 }
 
@@ -270,8 +278,8 @@ if (run[3] == 1) {
   
   if (map.mode == "gls") {
     
-    #**TODO**: verbose level (display info per search round?), 
-    #**TODO**: map.mode pairwise alignment
+    # **TODO**: verbose level (display info per search round?), 
+    # **TODO**: map.mode pairwise alignment
     source(file.path(wdir, 'R/functions/Search_vmatchV2.R'))
     Nsearch <- "Ambiguous matches enabled"
     mod.tot <- ncol(patterns)
