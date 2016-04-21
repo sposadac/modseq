@@ -6,3 +6,14 @@ Author: Susana Posada Cespedes
 -> Simulated data: use read simulators, such as GemSim 
 -> Consider using beta-binomial test of strand bias to account for systematic sequencing errors
 
+
+-> Susana: Docker (option for running modseq in a platform compatible way)
+RStudio server: To share files and folders between the docker image and host OS one can use the -v option. This acts much like running RStudio in the working directory.
+https://github.com/rocker-org/rocker/wiki/Using-the-RStudio-image
+
+-> Steven: Shiny server (option for the visualization)
+Asynchronous exchange for long-running calculations in R
+https://hub.docker.com/r/rocker/shiny/
+
+-> Define the decision making process (plots and statistics)
+
