@@ -12,7 +12,7 @@ plotQualityDistribution <- function(reads, out.filename, out.dir) {
   pl.quality <- ggplot(avQual, aes(x = avQual))
   
   pl.quality <- pl.quality + 
-    geom_histogram(aes(y=..density..), binwidth=.5, colour="black", 
+    geom_histogram(aes(y=..density..), binwidth=1, colour="black", 
                    fill="gray") +
     geom_density(alpha=.5, fill="#33CCFF", colour="#33CCFF") + 
     labs(x = "Average quality score", y = "density") +
