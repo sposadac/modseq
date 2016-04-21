@@ -1,6 +1,7 @@
 ### MAIN SCRIPT ###
-# Author: Susana Posada Cespedes <susana.posada@bsse.ethz.ch>
-# April 2016
+# Authors: 
+# Susana Posada Cespedes <susana.posada@bsse.ethz.ch>
+# Steven Schmitt
 ####
 
 ### DELETE WORKSPACE 
