@@ -1,9 +1,11 @@
 SearchPatListID <- function(hitsList.names, hitsList, pat, input.data, mm = 0, 
                             mode = "f", ambiguous.match = TRUE, 
                             num.cores = numeric(0)) {
+  
   if (length(num.cores) == 0) {
     num.cores <- detectCores()
   }
+  
   # patList <- list()
   patList <- as.matrix(na.omit(pat))
   if (mode == "f") {

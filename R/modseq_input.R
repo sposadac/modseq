@@ -8,8 +8,8 @@ library(Biostrings)
 library(ShortRead)
 library(ggplot2)
 # NOTES: Install libraries grid and gridExtra - Required and loaded in function 
-#          IlluminaStat
-#        Install libraries fmsb and scales - Required and loaded in run 4)
+#        IlluminaStat.
+#        Install libraries fmsb and scales - Required and loaded in run 3 and 4.
 
 ###############################################################################
 ###                         USER-DEFINED OPTIONS                            ###

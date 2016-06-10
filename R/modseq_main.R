@@ -10,17 +10,19 @@ rm(list=ls())
 ## Get current work directory
 wdir <- getwd()
 
-### LOAD USER-DEFINED OPTIONS AND PACKAGES
+## LOAD USER-DEFINED OPTIONS AND PACKAGES
 # **TODO** add R directory to search path
-source(file.path(wdir, "R/modseq_input.R"))
-source(file.path(wdir, "R/functions/InputCheck.R")) 
-source(file.path(wdir, "R/functions/NameGen.R"))
+# modseq.dir Path to modseq head directory. At the moment, set to current directory
+source(file.path(modseq.dir, "R/modseq_input.R"))
+source(file.path(modseq.dir, "R/functions/InputCheck.R")) 
+source(file.path(modseq.dir, "R/functions/NameGen.R"))
 names(run) <- c(1, 2, 3, 4, 5)
 
 ### TRACKING TOTAL MEMORY USAGE
 # MemTrace() Memory in Megabytes
+memTrace <- NULL
 if (mem.trace) {
-  source(file.path(wdir, "R/functions/MemTrace.R"))
+  source(file.path(modseq.dir, "R/functions/MemTrace.R"))
   memTrace <- MemTrace()
 }
 
@@ -29,7 +31,7 @@ Ti <- Sys.time()
 
 # Log-file
 log.file <- file.path(out.dir, 
-                      paste("/out_", out.filename.run2, "_run",
+                      paste("out_", out.filename.run2, "_run",
                             paste(names(run)[which(run == 1)], collapse = "_"),
                             ".txt", sep = ""))
 if (file.exists(log.file)) {
@@ -45,11 +47,12 @@ keep <- ls()
 # Read fastq-files
 if (run[1] == 1 || (run[2] == 1 && qtrim.flag == 0)) { 
   
-  source(file.path('R/functions/plotQualityDistribution.R'))
-  source(file.path('R/functions/plotReadLengthDistribution.R'))
+  source(file.path(modseq.dir, 'R/functions/PlotQualityDistribution.R'))
+  source(file.path(modseq.dir, 'R/functions/PlotReadLengthDistribution.R'))
   
   cat("Sequencing mode: \"", seq.mode, "\".\n", sep = "")
   if (seq.mode == "PE") {
+    
     readF1 <- readFastq(dirPath = in.seqDir, pattern = forward.filename)
     readF2 <- readFastq(dirPath = in.seqDir, pattern = reverse.filename)
     len.rawData <- length(readF1)
@@ -59,16 +62,19 @@ if (run[1] == 1 || (run[2] == 1 && qtrim.flag == 0)) {
            len.rawData, " reads, \n Reverse set: ", length(readF2), " reads.\n")
     }
     cat("Number of reads: ", len.rawData, " x 2 (mode: PE).\n", sep = "")
-    plotQualityDistribution(readF1, forward.filename, out.dir)
-    plotQualityDistribution(readF2, reverse.filename, out.dir)
-    plotReadLengthDistribution(readF1, forward.filename, out.dir)
-    plotReadLengthDistribution(readF2, reverse.filename, out.dir)
+    PlotQualityDistribution(readF1, forward.filename, out.dir)
+    PlotQualityDistribution(readF2, reverse.filename, out.dir)
+    PlotReadLengthDistribution(readF1, forward.filename, out.dir)
+    PlotReadLengthDistribution(readF2, reverse.filename, out.dir)
+    
   } else if (seq.mode == "SE") {
+    
     readF1 <- readFastq(dirPath = in.seqDir, pattern = in.filename)
     len.rawData <- length(readF1)
     cat("Number of reads: ", len.rawData, ".\n", sep = "")
-    plotQualityDistribution(readF1, in.filename, out.dir)
-    plotReadLengthDistribution(readF1, in.filename, out.dir)
+    PlotQualityDistribution(readF1, in.filename, out.dir)
+    PlotReadLengthDistribution(readF1, in.filename, out.dir)
+    
   }
 }
 
@@ -80,24 +86,32 @@ if (run[1] == 1) {
   cat("Quality trimming. \n")
   cat("====================================================================\n")  
   
-  source(file.path(wdir, 'R/functions/IlluminaStat.R'))
+  source(file.path(modseq.dir, "R/functions/IlluminaStat.R"))
   
   ### QUALITY TRIMMING: 
   # Uncalled bases (i.e. N) are removed from either both ends (qtrim.3end = 0)
   # or only the right end (qtrim.3end = 1).
   # Bases are removed if quality score is less than or equal to qtrim.thold.
-  source(file.path(wdir, 'R/functions/Run1_qualTrimming.R'))
+  source(file.path(modseq.dir, "R/functions/Run1_qualTrimming.R"))
+  
   if (seq.mode == "SE") {
-    readF1.nQtrim <- 
-      Run1_qualTrimming(readF1, in.filename, wdir, out.filename.run1, 
-                        qtrim.3end, qtrim.thold, seq.mode, out.ssplot)
+    
+    readF1.nQtrim <- Run1_qualTrimming(
+      readF1 = readF1, in.filename = in.filename, seq.mode = seq.mode, 
+      qtrim.3end = qtrim.3end, qtrim.thold = qtrim.thold, 
+      out.filename = out.filename.run1, out.ssplot = out.ssplot, 
+      wdir = wdir)
+  
   } else if (seq.mode == "PE") {
-    reads.nQtrim <- 
-      Run1_qualTrimming(readF1, forward.filename, wdir, out.filename.run1,
-                        qtrim.3end, qtrim.thold, seq.mode, out.ssplot,
-                        readF2, reverse.filename)
+    
+    reads.nQtrim <- Run1_qualTrimming(
+      readF1 = readF1, in.filename = forward.filename, seq.mode = seq.mode
+      qtrim.3end = qtrim.3end, qtrim.thold = qtrim.thold, 
+      out.filename = out.filename.run1, out.ssplot = out.ssplot,
+      readF2 = readF2, reverse.filename = reverse.filename, wdir = wdir)
     readF1.nQtrim <- reads.nQtrim[[1]]
     readF2.nQtrim <- reads.nQtrim[[2]]
+    
   }
 
   qtrim.flag <- as.integer(1) 
@@ -128,8 +142,8 @@ if (run[2] == 1) {
   if (!exists("keep")) {
     keep <- ls()
   }
-  if (!existsFunction('IlluminaStat')) {
-    source(file.path(wdir, 'R/functions/IlluminaStat.R'))
+  if (!existsFunction("IlluminaStat")) {
+    source(file.path(modseq.dir, "R/functions/IlluminaStat.R"))
   }
 
   if (mem.trace) {
@@ -137,18 +151,21 @@ if (run[2] == 1) {
   }
   
   ## PE read assembly
-  source(file.path(wdir, 'R/functions/Run2_peAssembly.R'))
+  source(file.path(modseq.dir, "R/functions/Run2_peAssembly.R"))
   if (qtrim.flag == 0) {
-    Run2_peAssembly(readF1, readF2, wdir, out.filename.run2, qtrim.flag, 
-                    out.ssplot, forward.filename, reverse.filename, in.seqDir,
-                    len.rawData)
+    
+    Run2_peAssembly(readF1 = readF1, readF2 = readF2, qtrim.flag = qtrim.flag, 
+                    forward.file = forward.filename, reverse.file = reverse.filename, 
+                    out.ssplot = out.ssplot, out.filename.run1 = out.filename.run1, 
+                    out.filename.run2 = out.filename.run2, in.seqDir = in.seqDir,
+                    len.rawData = len.rawData, wdir = wdir)
     rm(list = c("readF1", "readF2"))
     
   } else if (qtrim.flag == 1) {
 
-    in.tr1 <- file.path(wdir, 'data/processed', 
+    in.tr1 <- file.path(wdir, "data/processed", 
                         paste(out.filename.run1, "_1_nQtrim.fastq", sep = ""))
-    in.tr2 <- file.path(wdir, 'data/processed',
+    in.tr2 <- file.path(wdir, "data/processed",
                         paste(out.filename.run1, "_2_nQtrim.fastq", sep = ""))
     
     ## Check if files are located in the defatult directory, 
@@ -172,9 +189,13 @@ if (run[2] == 1) {
     if (!exists("len.rawData")) {
       len.rawData <- NULL
     }
-    Run2_peAssembly(readF1.nQtrim, readF2.nQtrim, wdir, out.filename.run2, 
-                    qtrim.flag, out.ssplot, in.tr1, in.tr2, in.seqDir, 
-                    len.rawData)
+    Run2_peAssembly(readF1 = readF1.nQtrim, readF2 = readF2.nQtrim, 
+                    qtrim.flag = qtrim.flag, forward.file = in.tr1, 
+                    reverse.file = in.tr2, out.ssplot = out.ssplot, 
+                    out.filename.run1 = out.filename.run1, 
+                    out.filename.run2 = out.filename.run2, 
+                    in.seqDir = in.seqDir, 
+                    len.rawData = len.rawData, wdir = wdir)
     rm(list = c("readF1.nQtrim", "readF2.nQtrim"))
     
   }
@@ -204,133 +225,60 @@ if (run[3] == 1) {
     keep <- ls()
   } 
   
-  ## Loading module-table
-  cat("Module-table used: \"", in.modDir, mod.filename, ".csv\". \n", sep = "")
-  patterns <- 
-    data.frame(
-      read.csv(file = file.path(in.modDir, paste(mod.filename, ".csv", sep = "")),
-               header = TRUE, sep = ",", dec = "."), stringsAsFactors = FALSE
-      )
   num.cores <- detectCores()
+  ## Loading module-table
+  source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
+  patterns <- 
+    LoadModuleTable(in.modulesDir = in.modDir, modules.filename = mod.filename)
   
-  if (paired.flag == 1) {  
+  source((file.path(modseq.dir, "R/functions/GetInputFile.R")))
+  in.file <- GetInputFile(wdir)
+  if (file.exists(in.file[[1]])) {
+    reads.subj <- readDNAStringSet(
+      file = in.file[[1]], format = in.file[[2]], use.names = TRUE) 
+    cat("Input reads file: \"", in.file[[1]], "\".\n", sep = "")
     
-    ## Paired reads 
-    cat("Read mapping of paired reads")
-    in.file <- file.path(wdir, "data/paired/fasta", 
-                         paste(out.filename.run2, "_PANDAseq.fasta", sep = ""))
-    if (file.exists(in.file)) {
-      # Must be format = "fasta", because when a FASTQ file is given as input, all
-      # the sequences must have the same length
-      reads.subj <- 
-        readDNAStringSet(file = in.file, format = "fasta", use.names = TRUE)
-      cat("PE-reads file: ", in.file, ".\n")
-    } else {
-      stop("File \"", in.file, "\" not found. \n")
-    }
+  } else {
+    stop("File \"", in.file, "\" not found.\n")
     
-  } else if (paired.flag == 0) {  
-    
-    ## Unpaired reads
-    if (qtrim.flag == 0) {  
-      
-      ## Unpaired and untrimmed reads - raw reads 
-      if (seq.mode == "SE") {
-        
-        cat("Read mapping of untrimmed and non-paired reads")
-        in.file <- file.path(in.seqDir, paste(in.filename, ".fastq", sep = ""))
-        cat("Sequencing-reads file: ", in.file, ".\n")
-        
-      } else if (seq.mode == "PE") {
-        
-        cat("Read mapping of untrimmed and unpaired reads")
-        if (paired.file == "f") {
-          in.file <- file.path(in.seqDir,  
-                               paste(forward.filename, ".fastq", sep = ""))
-          cat("Forward-reads file: ", in.file, ".\n")
-        } else if (paired.file == "r") {
-          in.file <- file.path(in.seqDir,  
-                               paste(reverse.filename, ".fastq", sep = ""))
-          cat("Reverse-reads file: ", in.file, ".\n")
-        }
-        
-      }
-      reads.subj <- 
-        readDNAStringSet(file = in.file, format = "fastq", use.names = TRUE)
-      
-    } else {   
-      
-      ## Unpaired, but trimmed reads
-      cat("Read mapping of trimmed but non-paired reads")
-      if (seq.mode == "SE" || paired.file == "f") { 
-        in.file <- file.path(wdir, 'data/processed/fasta', 
-                            paste(out.filename.run1, "_1_nQtrim.fasta", sep = ""))
-      } else if (paired.file == "r") {
-        in.file <- file.path(wdir, 'data/processed/fasta', 
-                             paste(out.filename.run1, "_2_nQtrim.fasta", sep = ""))
-      }
-      if (file.exists(in.file)) {
-        reads.subj <- 
-          readDNAStringSet(file = in.file, format = "fasta", use.names = TRUE) 
-        cat("Input reads file: ", in.file, ".\n")
-      } else {
-        stop("File \"", in.file, "\" not found.\n")
-      }
-      
-    }
   }
   reads.subj.len <- length(reads.subj)
   
   if (map.mode == "gls") {
     
-    source(file.path(wdir, 'R/functions/Search_vmatchV2.R'))
+    source(file.path(modseq.dir, "R/functions/Run3_gls.R"))
+    retList <- Run3_gls(
+      patterns=patterns, reads=reads.subj, num.reads=reads.subj.len, in.modDir, 
+      mod.filename, res.listName, res.counts.filename, out.dir, 
+      gls.ambiguity = gls.ambiguity, gls.direction = gls.direction, 
+      gls.mma = gls.mma, mem.trace = mem.trace, memTrace = memTrace, 
+      run.info = run.info, num.cores = num.cores)
+    
+    res.list <- retList[[1]]
+    if (length(retList) > 1) {
+      mod.comb <- retList[[2]]
+      res.list.lengths <- retList[[3]]
+      res.list.name <- retList[[4]]
+      if (run[4] == 1) {
+        keep <- append(keep, c("mod.comb", "res.list.lengths", "res.list.name")) 
+      }
+    } 
+    
     if (run[4] == 1) {
-      keep <- append(keep, c("mod.tot", "reads.subj", "reads.subj.len", 
-                             "res.list"))
+      keep <- append(keep, c("reads.subj", "res.list")) #TODO read.subj outside gls?, and patterns?
     }
     
   } else if (map.mode == "bwa") {
     
-    if (paired.flag == 1) {  # Paired reads
-      
-      reads.file <- 
-        file.path(wdir, "data/paired", 
-                  paste(out.filename.run2, "_PANDAseq.fastq", sep = ""))
-      
-    } else if (paired.flag == 0) { 
-      
-      if (qtrim.flag == 0) { # Unpaired and untrimmed files - raw files
-        if (seq.mode == "SE") {
-          reads.file <- 
-            file.path(in.seqDir, paste(in.filename, ".fastq", sep = ""))
-        } else if (seq.mode == "PE") {
-          if (paired.file == "f") {
-            reads.file <- 
-              file.path(in.seqDir, paste(forward.filename, ".fastq", sep = ""))
-          } else if (paired.file == "r") {
-            reads.file <- 
-              file.path(in.seqDir, paste(reverse.filename, ".fastq", sep = ""))
-          }
-        }
-      } else { # Unpaired, but trimmed files 
-        ###****HERE****
-        if (seq.mode == "SE" || paired.file == "f") {
-          reads.file <- paste("./DATA/PROCESSED/", out.filename.run1, 
-                              "_1_nQtrim.fastq", sep = "") 
-        } else if (paired.file == "r") {
-          reads.file <- paste("./DATA/PROCESSED/", out.filename.run1,
-                              "_2_nQtrim.fastq", sep = "")
-        }
-      }
-      
-    }
+    reads.file <- GetInputFile(wdir)
+    reads.file <- reads.file [[1]]
     if (!file.exists(reads.file)) {
       stop ("File \"", reads.file, "\" not found.\n")
     }
     
-    if (!file.exists(paste(in.modDir, mod.filename, '_modComb.fasta', 
-                           sep = ""))) {
-      source(paste(wdir, '/functions/ModuleCombinationsGen.R', sep = ""))
+    in.file <- file.path(in.modDir, paste(mod.filename, '_modComb.fasta', sep = ""))
+    if (!file.exists(in.file)) {
+      source(paste(modseq.dir, "R/functions/ModuleCombinationsGen.R", sep = ""))
       ModuleCombinationsGen(mod.filename, pattern = patterns, 
                             num.cores = num.cores)
       if (run[4] == 1) {

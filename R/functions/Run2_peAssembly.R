@@ -1,8 +1,10 @@
 ## **TODO** Illumina-stat plots for the case of input directory provided by user 
 #           Use threads (option -T)
-Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
-                            out.ssplot, forward.file, reverse.file, 
-                            in.seqDir=NULL, len.rawData=NULL) { 
+Run2_peAssembly <- function(readF1, readF2, qtrim.flag, forward.file, 
+                            reverse.file, out.ssplot, out.filename.run1, 
+                            out.filename.run2, in.seqDir=NULL, 
+                            len.rawData=NULL, wdir="") { 
+  
   ## Creating directories
   if (!file.exists(file.path(wdir, 'data/'))) {
     dir.create(file.path(wdir, 'data/'))
@@ -51,13 +53,13 @@ Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
   system(get(paste("runPANDAseq_", out.filename.run2, sep = "")))
   cat("Paired-end read assembly done!\n")
   cat("Output files: \n")
-  cat("Fastq-file: \"", wdir, "data/paired/", out.filename.run2, 
+  cat("Fastq file: \"", wdir, "data/paired/", out.filename.run2, 
       "_PANDAseq.fastq\",\n", sep = "")
-  cat("Fasta-file: \"", wdir, "data/paired/fasta/", out.filename.run2,
+  cat("Fasta file: \"", wdir, "data/paired/fasta/", out.filename.run2,
       "_PANDAseq.fasta\",\n", sep = "")
   cat("Unaligned reads: \"", wdir, "data/paired/", out.filename.run2, 
       "_unalignedPANDAseq.fastq\",\n", sep = "")
-  cat("Log-file: \"", wdir, "data/paired/logPANDAseq_", out.filename.run2, 
+  cat("Log file: \"", wdir, "data/paired/logPANDAseq_", out.filename.run2, 
       ".txt\".\n", sep = "")
   
   PandaseqPaired <- 
@@ -85,8 +87,10 @@ Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
     mean.readF1 <- mean(plot.input[[1]], na.rm = TRUE)
     mean.readF2 <- mean(plot.input[[2]], na.rm = TRUE)
     mean.readPE <- mean(plot.input[[3]], na.rm = TRUE)
-    cat("Paired reads: summary statistics - exporting plots...\n")
+    
+    cat("Paired-end reads: summary statistics - exporting plots...\n")
     if (qtrim.flag == 0) {
+      
       names(plot.input) <- c(forward.file, reverse.file, 
                              paste(out.filename.run2, "_PANDAseq", sep = ""))
       IlluminaStat(in.dir = file.path(wdir, 'data/paired/'), 
@@ -98,53 +102,37 @@ Run2_peAssembly <- function(readF1, readF2, wdir, out.filename.run2, qtrim.flag,
                                    format(Ti, "%Y%m%d_%H%M"), ".pdf", sep = ""), 
                    type = "paired", out.dir = out.dir, sample = FALSE, 
                    in.dirRaw = in.seqDir, forward.filename = forward.file)
+      
     } else {
+      
       names(plot.input) <- c(paste(out.filename.run1, "_1", sep = ""),
                              paste(out.filename.run1, "_2", sep = ""),
                              paste(out.filename.run2, "_PANDAseq", sep = ""))
-      if (file.exists(
-        file.path(wdir, 'data/processed', 
-                  paste(out.filename.run1, "_subSet_wo0_1_nQtrim.fastq",
-                        sep = "")))) {
-        
-        IlluminaStat(in.dir = file.path(wdir, 'data/paired/'), 
-                     pattern = out.filename.run2, SV_plotinputframe = plot.input,
-                     SV_qcwd1 = avQScore.readF1, SV_qcwd2 = avQScore.readPE, 
-                     SV_meanread1 = mean.readF1, SV_meanread2 = mean.readF2, 
-                     SV_meanread3 = mean.readPE, SV_meanread4 = 0,
-                     pdfname = paste("stat_assembled_", out.filename.run2, "_", 
-                                     format(Ti, "%Y%m%d_%H%M"), ".pdf", sep = ""), 
-                     type = "paired", out.dir = out.dir, sample = FALSE, 
-                     in.dirRaw = file.path(wdir, 'data/processed/'), 
-                     forward.filename = paste(out.filename.run1, "_subSet_wo0_1",
-                                              "_nQtrim", sep = ""))
-        
-      } else if (file.exists(
-        file.path(in.seqDir, paste(out.filename.run1, "_subSet_wo0_1", 
-                                   "_nQtrim", sep = "")))) {
-                
-        IlluminaStat(in.dir = file.path(wdir, 'data/paired/'), 
-                     pattern = out.filename.run2, SV_plotinputframe = plot.input,
-                     SV_qcwd1 = avQScore.readF1, SV_qcwd2 = avQScore.readPE, 
-                     SV_meanread1 = mean.readF1, SV_meanread2 = mean.readF2, 
-                     SV_meanread3 = mean.readPE, SV_meanread4 = 0,
-                     pdfname = paste("stat_assembled_", out.filename.run2, "_", 
-                                     format(Ti, "%Y%m%d_%H%M"), ".pdf", sep = ""), 
-                     type = "paired", out.dir = out.dir, sample = FALSE, 
-                     in.dirRaw = in.seqDir, 
-                     forward.filename = paste(out.filename.run1, "_subSet_wo0_1",
-                                              "_nQtrim", sep = ""))
-        
+      
+      in.file <- paste(out.filename.run1, "_subSet_wo0_1_nQtrim.fastq", sep = "")      
+      if (file.exists(file.path(wdir, 'data/processed', in.file))) {       
+        in.dir <- file.path(wdir, 'data/processed/')       
+      } else if (file.exists(file.path(in.seqDir, in.file))) {      
+        in.dir <- in.seqDir        
       } else {
         # **TODO**
         # Error when forward.file have reads with length zero 
         # Sln: Search for "_subSet_wo0_1" in the in.seqDir
         #system(paste("ls ", file.path(in.seqDir), "*_subSet_wo0_1_nQtrim", sep = ""))
-        
+        stop("Can't find file containing trimmed reads")
       }
-      
+      IlluminaStat(in.dir = file.path(wdir, 'data/paired/'), 
+                   pattern = out.filename.run2, SV_plotinputframe = plot.input,
+                   SV_qcwd1 = avQScore.readF1, SV_qcwd2 = avQScore.readPE, 
+                   SV_meanread1 = mean.readF1, SV_meanread2 = mean.readF2, 
+                   SV_meanread3 = mean.readPE, SV_meanread4 = 0,
+                   pdfname = paste("stat_assembled_", out.filename.run2, "_", 
+                                   format(Ti, "%Y%m%d_%H%M"), ".pdf", sep = ""), 
+                   type = "paired", out.dir = out.dir, sample = FALSE, 
+                   in.dirRaw = in.dir, forward.filename = in.file)
     }
   }
+  
   len.peData <- length(PandaseqPaired)
   if (is.null(len.rawData)) {
     cat("Number of Paired-end-reads: ", len.peData, ".\n", sep = "")
