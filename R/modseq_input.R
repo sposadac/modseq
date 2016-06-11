@@ -77,20 +77,23 @@ qtrim.3end  <- 1  # (0 = trimming at both ends, 1 = trimming at 3'-end only)
 qtrim.flag  <- 1  # (0 = untrimmed reads, 1 = trimmed reads)
 
 ###################### PAIRED-END READ ASSEMBLY options #######################
-# paired.flag: Indicates which set of reads should be taken for the read mapping 
-#              step: paired-end (1) or single reads (0). By default, it is set 
-#              to 1, unless the sequencing mode is set to "SE". Flag is changed
-#              to 1 after execution of the paired-end assembly step. 
-# paired.file: If paired.flag is set to 0, select set of forward (f) or reverse 
-#              (r) reads. By default, it is set to "f". 
-#              Alternative - select "SE" sequencing mode.
-paired.flag <- 1  # (0 = unpaired reads, 1 = paired reads)
-paired.file <- "f"  # Options: "f" - forward, "r" - reverse.
+# paired.flag:    Indicates which set of reads should be taken for the read 
+#                 mapping step: paired-end (1) or single reads (0). By default, 
+#                 it is set to 1, unless the sequencing mode is set to "SE". 
+#                 Flag is changed to 1 after execution of the paired-end 
+#                 assembly step. 
+# paired.file:    If paired.flag is set to 0, select set of forward (f) or 
+#                 reverse (r) reads. By default, it is set to "f". 
+#                 Alternative - select "SE" sequencing mode.
+# pandaseq.path:  Path to the pandaseq binary (if not in the PATH).
+paired.flag   <- 1  # (0 = unpaired reads, 1 = paired reads)
+paired.file   <- "f"  # Options: "f" - forward, "r" - reverse.
+pandaseq.path <- character(0)
 
 ############################ READ MAPPING options #############################
 # map.mode: Options bwa, gls - Grep-like search, and grPA - greedy search/
 #           Pairwise alignement. By default bwa.
-map.mode <- "gls"
+map.mode <- "bwa"
 
 ## Grep-like search options
 # gls.ambiguity: Options - TRUE or FALSE. If TRUE (default), an ambiguous
@@ -113,12 +116,15 @@ gls.direction <- "f"
 gls.mma       <- 0
 
 ## bwa mem
-# bwa.path: path to the bwa binaries (if not in the PATH).
-# bwa.cVal: discard a MEM if it has more than bwa.cVal occurrences in the genome.
-# bwa.dupl: mark read duplicates.
-bwa.path <- character(0)  #'/home/susanap/Documents/bwa/'
+# bwa.path:   path to the bwa binaries (if not in the PATH).
+# bwa.cVal:   discard a MEM if it has more than bwa.cVal occurrences in the 
+#             genome.
+# bwa.dupl:   mark read duplicates.
+# gatk.path:  path to jar file
+bwa.path <- character(0)  #"/home/susanap/Documents/bwa/"
 bwa.cVal <- 20000
 bwa.dupl <- TRUE
+gatk.path <- "/Users/susanap/Documents/ModSeq/modseq/bin/GenomeAnalysisTK-3.6"
 
 ## Filtering (0,Inf)
 # Filtering options should be greater than 0.

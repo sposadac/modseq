@@ -11,8 +11,9 @@ rm(list=ls())
 wdir <- getwd()
 
 ## LOAD USER-DEFINED OPTIONS AND PACKAGES
-# **TODO** add R directory to search path
-# modseq.dir Path to modseq head directory. At the moment, set to current directory
+# **TODO** add R and R/functions directory to search path
+# Path to modseq head directory. At the moment, set to current directory
+modseq.dir <- wdir
 source(file.path(modseq.dir, "R/modseq_input.R"))
 source(file.path(modseq.dir, "R/functions/InputCheck.R")) 
 source(file.path(modseq.dir, "R/functions/NameGen.R"))
@@ -86,7 +87,6 @@ if (run[1] == 1) {
   cat("Quality trimming. \n")
   cat("====================================================================\n")  
   
-  source(file.path(modseq.dir, "R/functions/IlluminaStat.R"))
   
   ### QUALITY TRIMMING: 
   # Uncalled bases (i.e. N) are removed from either both ends (qtrim.3end = 0)
@@ -100,15 +100,16 @@ if (run[1] == 1) {
       readF1 = readF1, in.filename = in.filename, seq.mode = seq.mode, 
       qtrim.3end = qtrim.3end, qtrim.thold = qtrim.thold, 
       out.filename = out.filename.run1, out.ssplot = out.ssplot, 
-      wdir = wdir)
-  
+      wdir = wdir, modseq.dir = modseq.dir, out.dir = out.dir)
+
   } else if (seq.mode == "PE") {
     
     reads.nQtrim <- Run1_qualTrimming(
-      readF1 = readF1, in.filename = forward.filename, seq.mode = seq.mode
+      readF1 = readF1, in.filename = forward.filename, seq.mode = seq.mode,
       qtrim.3end = qtrim.3end, qtrim.thold = qtrim.thold, 
       out.filename = out.filename.run1, out.ssplot = out.ssplot,
-      readF2 = readF2, reverse.filename = reverse.filename, wdir = wdir)
+      readF2 = readF2, reverse.filename = reverse.filename, wdir = wdir, 
+      modseq.dir = modseq.dir, out.dir = out.dir)
     readF1.nQtrim <- reads.nQtrim[[1]]
     readF2.nQtrim <- reads.nQtrim[[2]]
     
@@ -142,9 +143,6 @@ if (run[2] == 1) {
   if (!exists("keep")) {
     keep <- ls()
   }
-  if (!existsFunction("IlluminaStat")) {
-    source(file.path(modseq.dir, "R/functions/IlluminaStat.R"))
-  }
 
   if (mem.trace) {
     memTrace <- c(memTrace, MemTrace())
@@ -154,11 +152,14 @@ if (run[2] == 1) {
   source(file.path(modseq.dir, "R/functions/Run2_peAssembly.R"))
   if (qtrim.flag == 0) {
     
-    Run2_peAssembly(readF1 = readF1, readF2 = readF2, qtrim.flag = qtrim.flag, 
-                    forward.file = forward.filename, reverse.file = reverse.filename, 
-                    out.ssplot = out.ssplot, out.filename.run1 = out.filename.run1, 
-                    out.filename.run2 = out.filename.run2, in.seqDir = in.seqDir,
-                    len.rawData = len.rawData, wdir = wdir)
+    Run2_peAssembly(
+      readF1 = readF1, readF2 = readF2, qtrim.flag = qtrim.flag, 
+      forward.file = forward.filename, reverse.file = reverse.filename, 
+      out.ssplot = out.ssplot, out.filename.run2 = out.filename.run2,
+      len.rawData = len.rawData, in.seqDir = in.seqDir,  wdir = wdir,
+      modseq.dir = modseq.dir, pandaseq.path = pandaseq.path, out.dir = out.dir
+      )
+    
     rm(list = c("readF1", "readF2"))
     
   } else if (qtrim.flag == 1) {
@@ -189,13 +190,15 @@ if (run[2] == 1) {
     if (!exists("len.rawData")) {
       len.rawData <- NULL
     }
-    Run2_peAssembly(readF1 = readF1.nQtrim, readF2 = readF2.nQtrim, 
-                    qtrim.flag = qtrim.flag, forward.file = in.tr1, 
-                    reverse.file = in.tr2, out.ssplot = out.ssplot, 
-                    out.filename.run1 = out.filename.run1, 
-                    out.filename.run2 = out.filename.run2, 
-                    in.seqDir = in.seqDir, 
-                    len.rawData = len.rawData, wdir = wdir)
+    
+    Run2_peAssembly(
+      readF1 = readF1.nQtrim, readF2 = readF2.nQtrim, qtrim.flag = qtrim.flag,
+      forward.file = in.tr1, reverse.file = in.tr2, out.ssplot = out.ssplot, 
+      out.filename.run2 = out.filename.run2, in.filename.run1 = out.filename.run1,
+      len.rawData = len.rawData, in.seqDir = in.seqDir, wdir = wdir, 
+      modseq.dir = modseq.dir, pandaseq.path = pandaseq.path, out.dir = out.dir
+      )
+    
     rm(list = c("readF1.nQtrim", "readF2.nQtrim"))
     
   }
@@ -226,25 +229,26 @@ if (run[3] == 1) {
   } 
   
   num.cores <- detectCores()
-  ## Loading module-table
+  ## Loading module table
   source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
   patterns <- 
     LoadModuleTable(in.modulesDir = in.modDir, modules.filename = mod.filename)
   
   source((file.path(modseq.dir, "R/functions/GetInputFile.R")))
-  in.file <- GetInputFile(wdir)
-  if (file.exists(in.file[[1]])) {
-    reads.subj <- readDNAStringSet(
-      file = in.file[[1]], format = in.file[[2]], use.names = TRUE) 
-    cat("Input reads file: \"", in.file[[1]], "\".\n", sep = "")
-    
-  } else {
-    stop("File \"", in.file, "\" not found.\n")
-    
-  }
-  reads.subj.len <- length(reads.subj)
+  reads.file <- GetInputFile(wdir)
   
   if (map.mode == "gls") {
+    
+    if (file.exists(reads.file[[1]])) {
+      reads.subj <- readDNAStringSet(
+        file = reads.file[[1]], format = reads.file[[2]], use.names = TRUE) 
+      cat("Input reads file: \"", reads.file[[1]], "\".\n", sep = "")
+      
+    } else {
+      stop("File \"", reads.file, "\" not found.\n")
+      
+    }
+    reads.subj.len <- length(reads.subj)
     
     source(file.path(modseq.dir, "R/functions/Run3_gls.R"))
     retList <- Run3_gls(
@@ -252,7 +256,7 @@ if (run[3] == 1) {
       mod.filename, res.listName, res.counts.filename, out.dir, 
       gls.ambiguity = gls.ambiguity, gls.direction = gls.direction, 
       gls.mma = gls.mma, mem.trace = mem.trace, memTrace = memTrace, 
-      run.info = run.info, num.cores = num.cores)
+      run.info = run.info, modseq.dir = modseq.dir, num.cores = num.cores)
     
     res.list <- retList[[1]]
     if (length(retList) > 1) {
@@ -265,74 +269,111 @@ if (run[3] == 1) {
     } 
     
     if (run[4] == 1) {
-      keep <- append(keep, c("reads.subj", "res.list")) #TODO read.subj outside gls?, and patterns?
+      keep <- append(keep, c("reads.subj", "res.list")) ## **TODO** read.subj outside gls?, and patterns?
     }
     
   } else if (map.mode == "bwa") {
     
-    reads.file <- GetInputFile(wdir)
-    reads.file <- reads.file [[1]]
+    reads.file <- reads.file[[1]]
     if (!file.exists(reads.file)) {
       stop ("File \"", reads.file, "\" not found.\n")
     }
     
-    in.file <- file.path(in.modDir, paste(mod.filename, '_modComb.fasta', sep = ""))
+    in.file <- file.path(in.modDir, 
+                         paste(mod.filename, '_modComb.fasta', sep = ""))
     if (!file.exists(in.file)) {
-      source(paste(modseq.dir, "R/functions/ModuleCombinationsGen.R", sep = ""))
-      ModuleCombinationsGen(mod.filename, pattern = patterns, 
+      
+      if (!existsFunction("ModuleCombinationsGen")) {
+        source(paste(modseq.dir, "R/functions/ModuleCombinationsGen.R", 
+                     sep = ""))
+      }
+      
+      ModuleCombinationsGen(modules.filename = mod.filename, pattern = patterns, 
+                            in.modDir = in.modDir, modseq.dir = modseq.dir, 
                             num.cores = num.cores)
+      ## **TODO** Really needed? once the fasta file is generated is not needed.
       if (run[4] == 1) {
         keep <- append(keep, c("ModuleCombinationsGen"))
       }
+      
     }
-    # Indexing reference sequences -- module-combinations
-    if (!file.exists(paste(in.modDir, mod.filename, "_modComb.fasta.bwt", 
-                           sep = ""))) {
-      run.index <- paste(bwa.path, 'bwa index ', in.modDir, mod.filename, 
-                         "_modComb.fasta", sep = "")
+
+    ## Setting bwa variable
+    if (length(bwa.path) == 0) {
+      bwa <- "bwa"
+    } else {
+      bwa <- file.path(bwa.path, "bwa")
+    }
+    
+    ## Indexing reference sequences -- module-combinations sequences
+    out.file <- file.path(in.modDir, 
+                          paste(mod.filename, "_modComb.fasta.bwt", sep = ""))
+    mod.file <- file.path(in.modDir, 
+                          paste(mod.filename, "_modComb.fasta", sep = ""))
+    if (!file.exists(out.file)) {
+      run.index <- paste(bwa, "index", mod.file)
+      
       cat("Building index reference sequences ... \n")
       system(run.index)
+      cat("Output file: \"", out.file,"\".\n", sep = "")
+      
     }
+    
+    ## Running bwa mem
     # Mcomp: stands for Picard compatibility (option M)
-    run.bwa <- paste(bwa.path, 'bwa mem -M -t ', num.cores,' -c ', bwa.cVal, 
-                     ' ', in.modDir, mod.filename, '_modComb.fasta ', 
-                     reads.file, ' > ', out.dir, out.filename.run2, 
-                     '_bwaMEM_Mcomp.sam 2> ', out.dir,'out_', out.filename.run2, 
-                     '_bwaMEM_Mcomp.txt', sep = "")
+    sam.file <- 
+      file.path(out.dir, 
+                paste(out.filename.run2, "_bwaMEM_Mcomp.sam", sep = ""))
+    out.file <- 
+      file.path(out.dir, 
+                paste("out_", out.filename.run2, "_bwaMEM_Mcomp.txt", sep = ""))
+    
+    run.bwa <- paste(bwa, "mem -M -t", num.cores, "-c", bwa.cVal, mod.file, 
+                     reads.file, ">", sam.file, "2>", out.file)
+    
     cat("BWA - Starting read mapping ...\n")
     ti.search <- Sys.time()
     system(run.bwa)   
     cat("Runtime:", round(as.numeric(
       difftime(Sys.time(), ti.search, units = "mins")), digits = 4), "min.\n")
     cat("Mapping done!\n")
+    cat("Output files: \n")
+    cat("Alignment file (sam format): \"", sam.file, "\". \n", sep = "")
+    cat("Log file: \"", out.file, "\". \n", sep = "")
     
-    cat("Local realignment - Preparing \"", in.modDir, mod.filename,
-        "_modComb.fasta\" to use as reference ...\n", sep = "")
-    # Dictionary - reference sequences
-    if (!file.exists(paste(in.modDir, mod.filename, '_modComb.dict', 
-                           sep = ""))) {
+    ## Preparing dictionary - reference sequences
+    cat("Local realignment - Preparing \"", mod.file, "\" to use as reference", 
+        " ...\n", sep = "")
+    in.file <- file.path(in.modDir, 
+                         paste(mod.filename, '_modComb.dict', sep = ""))
+    
+    if (!file.exists(in.file)) {
       system(paste('java -jar ../gatk/picard-tools-1.129/picard.jar ', 
-                   'CreateSequenceDictionary R=', in.modDir, mod.filename, 
-                   '_modComb.fasta O=', in.modDir, mod.filename, 
-                   '_modComb.dict', sep = ""))
+                   'CreateSequenceDictionary R=', mod.file,  
+                   ' O=', in.file, sep = ""))
     }
-    # Indexing - reference sequences
-    if (!file.exists(paste(in.modDir, mod.filename, '_modComb.fasta.fai', 
-                           sep=""))) {
-      system(paste('samtools faidx ', in.modDir, mod.filename, '_modComb.fasta', 
-                   sep = ""))
+    
+    ## Indexing - reference sequences
+    out.file <- file.path(in.modDir,
+                          paste(mod.file, '_modComb.fasta.fai', sep = ""))
+    if (!file.exists(out.file)) {
+      system(paste('samtools faidx', mod.file))
     } 
     
-    cat("Local realignment - Sorting \"", out.filename.run2, 
-        '_bwaMEM.bam',"\" file... \n", sep = "")
-    # Convert SAM to BAM
-    if (!file.exists(paste(out.dir, out.filename.run2, '_bwaMEM.bam', 
-                           sep = ""))) {
-      system(paste('samtools view -b -S -o ', out.dir, out.filename.run2, 
-                   '_bwaMEM.bam ', out.dir, out.filename.run2, 
-                   '_bwaMEM_Mcomp.sam', sep = ""))
+    
+    ## Converting SAM to BAM and sorting
+    bam.file <- 
+      file.path(out.dir, 
+                paste(out.filename.run2, "_bwaMEM_Mcomp.bam", sep = ""))
+    cat("Local realignment - Sorting bam file: \"", bam.file, "\" ... \n", 
+        sep = "")
+
+    if (!file.exists(bam.file)) {
+      system(paste('samtools view -b -S -o', bam.file, sam.file))
     }
+    
     # BAM - sorted by coordinates
+    
     if (!file.exists(paste(out.dir, out.filename.run2, '_bwaMEM_', 
                            'sortedPicard.bam', sep = ""))) {
       system(paste('java -jar ../gatk/picard-tools-1.129/picard.jar SortSam ', 

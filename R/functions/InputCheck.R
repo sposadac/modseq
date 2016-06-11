@@ -80,13 +80,14 @@ if (!file.exists(in.seqDir)) {
 ## Raw sequencing data - file names
 if (seq.mode == "SE"){
   if (exists("in.filename")) {
+    aux <- file.path(in.seqDir, paste(in.filename, '.fastq', sep = ""))
     if (!is.character(in.filename)) {
       stop("Invalid data type for \'in.filename\', \"",  class(in.filename), 
            "\".\nObject \'in.filename\' should be of type \"character\".\n")
-    } else if (!file.exists(paste(in.seqDir, in.filename, '.fastq', sep = ""))) {
-      stop("File \"", in.seqDir, in.filename, ".fastq\" not found.\n")
+    } else if (!file.exists(aux)) {
+      stop("File \"", aux, "\" not found.\n")
     }
-  } else if (!exists("in.filename")) {
+  } else {
     stop("Object \'in.filename\' not found. \n")
   }
 } else if (seq.mode == "PE") {
@@ -94,11 +95,13 @@ if (seq.mode == "SE"){
     if (!is.character(forward.filename) || !is.character(reverse.filename)) {
       stop("Sequencing data input: file name should be of type character. \n")
     } else {
-      if (!file.exists(paste(in.seqDir, forward.filename, '.fastq', sep = ""))) {
-        stop("File \"", in.seqDir, forward.filename, ".fastq\" not found. \n")
+      aux <- file.path(in.seqDir, paste(forward.filename, '.fastq', sep = ""))
+      if (!file.exists(aux)) {
+        stop("File \"", aux, "\" not found. \n")
       }
-      if (!file.exists(paste(in.seqDir, reverse.filename, '.fastq', sep = ""))) {
-        stop("File \"", in.seqDir, reverse.filename, ".fastq\" not found. \n")
+      aux <- file.path(in.seqDir, paste(reverse.filename, '.fastq', sep = ""))
+      if (!file.exists(aux)) {
+        stop("File \"", aux, "\" not found. \n")
       }
     }
   } else {
@@ -129,11 +132,12 @@ if (!file.exists(in.modDir)) {
 if (!exists("mod.filename")) {
   stop("Object \'mod.filename\' not found. \n")
 } else {
+  aux <- file.path(in.modDir, paste(mod.filename, ".csv", sep = ""))
   if (!is.character(mod.filename)) {
     stop("Module-table input: file name should be of type character, \"", 
          class(mod.filename), "\". \n")
-  } else if (!file.exists(paste(in.modDir, mod.filename, '.csv', sep = ""))) {
-    stop("File \"", in.modDir, mod.filename, ".csv\" not found. \n")
+  } else if (!file.exists(aux)) {
+    stop("File \"", aux, "\" not found. \n")
   } 
 }
 
@@ -271,6 +275,32 @@ if (!exists("qtrim.flag")) {
 }
 
 ### Paired-end read assembly options
+if (run[2] == 1) { 
+  if (!exists("pandaseq.path")) {
+    warning("Object \'pandaseq.path\' not found, set to default value: ", 
+            "character(0).")
+    pandaseq.path <- character(0)
+  } else {
+    if (!is.character(pandaseq.path)) {
+      warning("Invalid data type for \'pandaseq.path\', \"", 
+              class(pandaseq.path), "\".\nObject \'pandaseq.path\' is set to", 
+              " character(0).")
+      pandaseq.path <- character(0)
+    } else if (length(pandaseq.path) > 0 && (pandaseq.path == "" || pandaseq.path == " ")) {
+      pandaseq.path <- character(0)
+    }    
+  }
+  if (length(pandaseq.path) > 0) {
+    if (!file.exists(pandaseq.path)) {
+      stop("Invalid path for pandaseq binaries, \"", pandaseq.path, "\". \n")
+    }
+    if (!file.exists(file.path(pandaseq.path, "pandaseq"))) {
+      stop("pandaseq binary file not found, \"", 
+           file.path(pandaseq.path, "pandaseq"), "\". \n")
+    }
+  }
+} 
+
 if (run[3] == 1 || run[4] == 1) {
   if (!exists("paired.flag")) {
     warning("Object \'paired.flag\' not found, set to default value: 1.")
@@ -425,8 +455,9 @@ if (run[3] == 1 || run[4] == 1 || run[5] == 1) {
         if (!file.exists(bwa.path)) {
           stop("Invalid path for bwa binaries, \"", bwa.path, "\". \n")
         }
-        if (!file.exists(paste(bwa.path, "bwa", sep = ""))) {
-          stop("bwa binaries not found, \"", bwa.path, "bwa\". \n")
+        if (!file.exists(file.path(bwa.path, "bwa"))) {
+          stop("bwa binaries not found, \"", file.path(bwa.path, "bwa"), 
+               "\". \n")
         }
       }   
       
@@ -456,6 +487,29 @@ if (run[3] == 1 || run[4] == 1 || run[5] == 1) {
           bwa.cVal <- as.integer(20000)
         } 
       }
+      
+      if (!exists("gatk.path")) {
+        warning("Object \'gatk.path\' not found, set to default value: ", 
+                "character(0).")
+        gatk.path <- character(0)
+      } else {
+        if (!is.character(gatk.path)) {
+          warning("Invalid data type for \'gatk.path\', \"", class(gatk.path), "\"",
+                  ".\nObject \'gatk.path\' is set to character(0).")
+          gatk.path <- character(0)
+        } else if (length(gatk.path) > 0 && (gatk.path == "" || gatk.path == " ")) {
+          gatk.path <- character(0)
+        }    
+      }
+      if (length(gatk.path) > 0) {
+        if (!file.exists(gatk.path)) {
+          stop("Invalid path for gatk jar file, \"", gatk.path, "\". \n")
+        }
+        if (!file.exists(file.path(gatk.path, "GenomeAnalysisTK.jar"))) {
+          stop("gatk jar file not found, \"", 
+               file.path(gatk.path, "GenomeAnalysisTK.jar"), "\". \n")
+        }
+      }  
     }
     
     if (run[4] == 1 || run[5] == 1) {

@@ -4,8 +4,15 @@ library(grid)
 library(gridExtra)
 IlluminaStat <- function(in.dir, pattern, SV_plotinputframe, SV_qcwd1, SV_qcwd2, 
                          SV_meanread1, SV_meanread2, SV_meanread3, SV_meanread4,
-                         pdfname, type, out.dir, sample=FALSE, in.dirRaw=NULL,
-                         forward.filename=NULL, reverse.filename=NULL) {
+                         pdfname, type, sample=FALSE, in.dirRaw=NULL, 
+                         forward.filename=NULL, reverse.filename=NULL,
+                         out.dir=NULL) {
+  
+  ## Whenever output directory is not specified, assumed to be the current 
+  #  working directory
+  if (is.null(out.dir)) {
+    out.dir <- getwd()
+  }
   
   if (type == "unpaired") {
     

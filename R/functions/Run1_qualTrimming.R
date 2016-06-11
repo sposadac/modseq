@@ -3,7 +3,28 @@
 #  Intermediate files are written to folder "data/"
 Run1_qualTrimming <- function(readF1, in.filename, seq.mode, qtrim.3end,
                               qtrim.thold, out.filename, out.ssplot,
-                              readF2=NULL, reverse.filename=NULL, wdir="") {  
+                              readF2=NULL, reverse.filename=NULL, wdir=NULL, 
+                              modseq.dir=NULL, out.dir=NULL) {   
+  
+  ## Function arguments
+  # readF2            Expected when seq.mode = "PE"
+  # reverse.filename  Expected when seq.mode = "PE"
+  
+  ## Whenever input or output directories are not specified, assumed to be the 
+  #  current working directory
+  if (is.null(wdir)) {
+    wdir <- getwd()
+  } 
+  if (is.null(modseq.dir)) {
+    modseq.dir <- getwd()
+    warning("Object \'modseq.dir\' not found, set to: \"", modseq.dir, "\".")
+  }
+  if (is.null(out.dir)) {
+    out.dir <- getwd()
+  }
+  
+  source(file.path(modseq.dir, "R/functions/IlluminaStat.R"))
+  
   if (qtrim.3end == 0) {
     leftTrim <- TRUE
     rightTrim <- TRUE
@@ -13,6 +34,7 @@ Run1_qualTrimming <- function(readF1, in.filename, seq.mode, qtrim.3end,
     rightTrim <- TRUE
     cat("Trimming low-quality bases from the right end...\n")
   }
+  
   ## Quality trimming: forward reads (PE mode) or sequencing reads (SE mode)
   readF1.ntrim <- trimEnds(sread(readF1), "N", left = leftTrim, 
                            right = rightTrim, relation = "==", ranges = TRUE)
@@ -33,23 +55,18 @@ Run1_qualTrimming <- function(readF1, in.filename, seq.mode, qtrim.3end,
   }
   
   ## Writing fasta file
-  cat("writing \"", wdir, "/data/processed/fasta/", out.filename, "_1_nQtrim",
-      ".fasta\" ...\n", sep = "")
-  writeFasta(
-    object = readF1.nQtrim, 
-    file = file.path(wdir, 'data/processed/fasta', 
-                     paste(out.filename, "_1_nQtrim.fasta", sep = ""))
-    )
+  out.file <- file.path(wdir, "data/processed/fasta", 
+                       paste(out.filename, "_1_nQtrim.fasta", sep = ""))
+  cat("writing \"", out.file, "\" ...\n", sep = "")
+  writeFasta(object = readF1.nQtrim, file = out.file)
+  
   ## Writing fastq file: reads with zero length after trimming are omitted
-  cat("writing \"", wdir, "/data/processed/", out.filename, "_subSet_wo0_1_", 
-      "nQtrim.fastq\" ...\n", sep = "")
-  writeFastq(
-    object = readF1.nQtrim[width(readF1.nQtrim) != 0], 
-    file = 
-      file.path(wdir, 'data/processed', 
-                paste(out.filename, "_subSet_wo0_1_nQtrim.fastq", sep = "")),
-    compress = FALSE
-    )
+  out.file <- 
+    file.path(wdir, 'data/processed', 
+              paste(out.filename, "_subSet_wo0_1_nQtrim.fastq", sep = ""))
+  cat("writing \"", out.file, "\" ...\n", sep = "")
+  writeFastq(object = readF1.nQtrim[width(readF1.nQtrim) != 0], 
+             file = out.file, compress = FALSE)
   
   if (seq.mode == "PE") {
     
@@ -63,45 +80,40 @@ Run1_qualTrimming <- function(readF1, in.filename, seq.mode, qtrim.3end,
     
     ## Writing fastq files: read with zero length after trimming, in any of the 
     # files (forward or reverse), are appended at the end. 
-    cat("writing \"", wdir, "/data/processed/", out.filename, "_1_nQtrim.fastq",
-        "\" ...\n", sep = "")
+    out.file <- file.path(wdir, 'data/processed', 
+                         paste(out.filename, "_1_nQtrim.fastq", sep = ""))
+    cat("writing \"", out.file, "\" ...\n", sep = "")
     writeFastq(
       object = append(
         readF1.nQtrim[width(readF1.nQtrim) != 0 & width(readF2.nQtrim) != 0],
         readF1.nQtrim[width(readF1.nQtrim) == 0 | width(readF2.nQtrim) == 0]),
-      file = file.path(wdir, 'data/processed', 
-                       paste(out.filename, "_1_nQtrim.fastq", sep = "")),
-      compress = FALSE
+      file = out.file, compress = FALSE
       )
-    cat("writing \"", wdir, "/data/processed/", out.filename, "_2_nQtrim.fastq",
-        "\" ...\n", sep = "")
+    
+    out.file <- file.path(wdir, 'data/processed', 
+                         paste(out.filename, "_2_nQtrim.fastq", sep = ""))
+    cat("writing \"", out.file, "\" ...\n", sep = "")
     writeFastq(
       object = append(
         readF2.nQtrim[width(readF1.nQtrim) != 0 & width(readF2.nQtrim) != 0], 
         readF2.nQtrim[width(readF1.nQtrim) == 0 | width(readF2.nQtrim) == 0]),
-      file = file.path(wdir, 'data/processed', 
-                       paste(out.filename, "_2_nQtrim.fastq", sep = "")),
-      compress = FALSE
+      file = out.file, compress = FALSE
       )
     
     ## Writing fasta file
-    cat("writing \"", wdir, "/data/processed/fasta/", out.filename, 
-        "_2_nQtrim.fasta\" ...\n", sep = "")
-    writeFasta(
-      object = readF2.nQtrim, 
-      file = file.path(wdir, 'data/processed/fasta', 
-                       paste(out.filename, "_2_nQtrim.fasta", sep = ""))
-    )
+    out.file <- file.path(wdir, 'data/processed/fasta', 
+                          paste(out.filename, "_2_nQtrim.fasta", sep = ""))
+    cat("writing \"", out.file, "\" ...\n", sep = "")
+    writeFasta(object = readF2.nQtrim, file = out.file)
+    
     ## Writing fastq file: reads with zero length after trimming are omitted
-    cat("writing \"", wdir, '/data/processed/', out.filename, "_subSet_wo0_2",
-        "_nQtrim.fastq\" ...\n", sep = "")
-    writeFastq(
-      object = readF2.nQtrim[width(readF2.nQtrim) != 0], 
-      file = 
-        file.path(wdir, 'data/processed',
-                  paste(out.filename, "_subSet_wo0_2_nQtrim.fastq", sep = "")),
-      compress = FALSE
-    )
+    out.file <- 
+      file.path(wdir, 'data/processed',
+                paste(out.filename, "_subSet_wo0_2_nQtrim.fastq", sep = ""))
+    cat("writing \"", out.file, "\" ...\n", sep = "")
+    writeFastq(object = readF2.nQtrim[width(readF2.nQtrim) != 0], 
+               file = out.file, compress = FALSE)
+    
     if (out.ssplot) {
       cat("Trimmed reads: summary statistics.\n") 
       # Adapted from script written by S.Schmitt
@@ -129,10 +141,11 @@ Run1_qualTrimming <- function(readF1, in.filename, seq.mode, qtrim.3end,
                    SV_meanread4 = mean.readF2.nQtrim, 
                    pdfname = paste("stat_trimmed_", out.filename, "_", 
                                    format(Ti, "%Y%m%d_%H%M"), ".pdf", sep = ""),
-                   type = "unpaired", out.dir = out.dir, sample = FALSE, 
-                   in.dirRaw = in.seqDir, forward.filename = forward.filename, 
-                   reverse.filename  = reverse.filename) 
+                   type = "unpaired", sample = FALSE, in.dirRaw = in.seqDir,
+                   forward.filename = forward.filename, 
+                   reverse.filename = reverse.filename, out.dir = out.dir) 
     }  
+    
     cat("Number of reads after quality trimming: ", length(readF1.nQtrim), 
         " x 2 (mode: PE).\n", sep = "")
     cat("Number of pairs of reads after quality trimming with non-zero length: ",
@@ -149,14 +162,13 @@ Run1_qualTrimming <- function(readF1, in.filename, seq.mode, qtrim.3end,
     
     ## Writing fastq files: reads with length zero after trimming are appended
     # at the end 
-    cat("writing \"", wdir, "/data/processed/", out.filename, "_1_nQtrim",
-        ".fastq\" ...\n", sep = "")
+    out.file <- file.path(wdir, 'data/processed', 
+                          paste(out.filename, "_1_nQtrim.fastq", sep = ""))
+    cat("writing \"", out.file, "\" ...\n", sep = "")
     writeFastq(
       object = append(readF1.nQtrim[width(readF1.nQtrim) != 0], 
                       readF1.nQtrim[width(readF1.nQtrim) == 0]), 
-      file = file.path(wdir, 'data/processed', 
-                       paste(out.filename, "_1_nQtrim.fastq", sep = "")),
-      compress = FALSE
+      file = out.file, compress = FALSE
       )  
     
     if (out.ssplot) {
@@ -180,9 +192,10 @@ Run1_qualTrimming <- function(readF1, in.filename, seq.mode, qtrim.3end,
                    SV_meanread4 = 0,
                    pdfname = paste("stat_trimmed_", out.filename, "_",
                                    format(Ti, "%Y%m%d_%H%M"), ".pdf", sep = ""),
-                   type = "single", out.dir = out.dir, sample = FALSE,
-                   in.dirRaw = in.seqDir, forward.filename = in.filename)
+                   type = "single", sample = FALSE, in.dirRaw = in.seqDir,
+                   forward.filename = in.filename, out.dir = out.dir)
     }
+    
     cat("Number of reads after quality trimming: ", length(readF1.nQtrim), ".\n",
         sep = "")
     cat("Number of reads after quality trimming with non-zero length: ",

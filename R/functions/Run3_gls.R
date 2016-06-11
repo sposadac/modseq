@@ -1,14 +1,8 @@
-# modseq.dir     Set as global variable
-source(file.path(modseq.dir, "R/functions/Search_vmatchV2.R"))
-source(file.path(modseq.dir, "R/functions/PlotModuleCounts.R"))
-source(file.path(modseq.dir, "R/functions/VariantCounts.R"))
-source(file.path(modseq.dir, "R/functions/PlotVariantCounts.R"))
-
-Run3_gls <- function(patterns = NULL, reads, num.reads, in.modDir, mod.filename, 
+ Run3_gls <- function(patterns = NULL, reads, num.reads, in.modDir, mod.filename, 
                      res.listName, res.counts.filename, out.dir, 
                      gls.ambiguity = TRUE, gls.direction = "f", gls.mma = 0,
                      mem.trace = FALSE, memTrace = NULL, run.info = "ModSeq", 
-                     num.cores = numeric(0)) {
+                     modseq.dir = NULL, num.cores = numeric(0)) {
   
   # **TODO**: verbose level (display info per search round?)
   # **TODO**: map.mode pairwise alignment
@@ -20,6 +14,17 @@ Run3_gls <- function(patterns = NULL, reads, num.reads, in.modDir, mod.filename,
   #             correspond to variants identifiers. 
   # num.cores   (optional) number of cores available for performing parallel 
   #             tasks.
+  
+  ## Whenever modseq path is not specified, assumed to be the current working
+  #  directory
+  if (is.null(modseq.dir)) {
+    modseq.dir <- getwd()
+    warning("Object \'modseq.dir\' not found, set to: \"", modseq.dir, "\".")
+  } 
+   
+  source(file.path(modseq.dir, "R/functions/Search_vmatchV2.R"))
+  source(file.path(modseq.dir, "R/functions/PlotModuleCounts.R"))
+  source(file.path(modseq.dir, "R/functions/VariantCounts.R"))
   
   if (length(num.cores) == 0) {
     num.cores <- detectCores()
@@ -149,7 +154,8 @@ Run3_gls <- function(patterns = NULL, reads, num.reads, in.modDir, mod.filename,
   VariantCounts(patterns = patterns, num.reads = num.reads,
                 counts = counts, labels = levels(res.counts$round), 
                 file.prefix = res.counts.filename, out.dir = out.dir,
-                gls.direction = gls.direction, num.cores = num.cores)
+                gls.direction = gls.direction, modseq.dir = modseq.dir, 
+                num.cores = num.cores)
 
 #   if (sum(gls.mma > 0) > 0) {
 #     cat("Maximum mismatch allowance for module", which(gls.mma > 0), "was", 
@@ -170,10 +176,10 @@ Run3_gls <- function(patterns = NULL, reads, num.reads, in.modDir, mod.filename,
   if (sum(duplicated(aux)) > 0) {
     
     source(file.path(modseq.dir, "R/functions/RepeatedHits.R"))
-    source(file.path(modseq.dir, "R/functions/PlotRepeatedHits.R"))
     retList <- RepeatedHits(res.list, data = aux, patterns = patterns, 
                             num.reads = num.reads, in.modDir, mod.filename,
-                            res.listName, out.dir, num.cores = num.cores)
+                            res.listName, out.dir, modseq.dir = modseq.dir,
+                            num.cores = num.cores)
     mod.comb <- retList[[1]]
     res.list.lengths <- retList[[2]]
     res.list.name <- retList[[3]]
