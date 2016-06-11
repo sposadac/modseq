@@ -253,10 +253,10 @@ if (run[3] == 1) {
     source(file.path(modseq.dir, "R/functions/Run3_gls.R"))
     retList <- Run3_gls(
       patterns=patterns, reads=reads.subj, num.reads=reads.subj.len, in.modDir, 
-      mod.filename, res.listName, res.counts.filename, out.dir, 
+      mod.filename, res.listName, res.counts.filename,  
       gls.ambiguity = gls.ambiguity, gls.direction = gls.direction, 
       gls.mma = gls.mma, mem.trace = mem.trace, memTrace = memTrace, 
-      run.info = run.info, modseq.dir = modseq.dir, num.cores = num.cores)
+      run.info = run.info, modseq.dir = modseq.dir, out.dir = out.dir, num.cores = num.cores)
     
     res.list <- retList[[1]]
     if (length(retList) > 1) {
@@ -279,193 +279,46 @@ if (run[3] == 1) {
       stop ("File \"", reads.file, "\" not found.\n")
     }
     
-    in.file <- file.path(in.modDir, 
-                         paste(mod.filename, '_modComb.fasta', sep = ""))
-    if (!file.exists(in.file)) {
-      
-      if (!existsFunction("ModuleCombinationsGen")) {
-        source(paste(modseq.dir, "R/functions/ModuleCombinationsGen.R", 
-                     sep = ""))
-      }
-      
-      ModuleCombinationsGen(modules.filename = mod.filename, pattern = patterns, 
-                            in.modDir = in.modDir, modseq.dir = modseq.dir, 
-                            num.cores = num.cores)
-      ## **TODO** Really needed? once the fasta file is generated is not needed.
-      if (run[4] == 1) {
-        keep <- append(keep, c("ModuleCombinationsGen"))
-      }
-      
-    }
-
-    ## Setting bwa variable
-    if (length(bwa.path) == 0) {
-      bwa <- "bwa"
-    } else {
-      bwa <- file.path(bwa.path, "bwa")
-    }
-    
-    ## Indexing reference sequences -- module-combinations sequences
-    out.file <- file.path(in.modDir, 
-                          paste(mod.filename, "_modComb.fasta.bwt", sep = ""))
-    mod.file <- file.path(in.modDir, 
-                          paste(mod.filename, "_modComb.fasta", sep = ""))
-    if (!file.exists(out.file)) {
-      run.index <- paste(bwa, "index", mod.file)
-      
-      cat("Building index reference sequences ... \n")
-      system(run.index)
-      cat("Output file: \"", out.file,"\".\n", sep = "")
-      
-    }
-    
-    ## Running bwa mem
-    # Mcomp: stands for Picard compatibility (option M)
-    sam.file <- 
-      file.path(out.dir, 
-                paste(out.filename.run2, "_bwaMEM_Mcomp.sam", sep = ""))
-    out.file <- 
-      file.path(out.dir, 
-                paste("out_", out.filename.run2, "_bwaMEM_Mcomp.txt", sep = ""))
-    
-    run.bwa <- paste(bwa, "mem -M -t", num.cores, "-c", bwa.cVal, mod.file, 
-                     reads.file, ">", sam.file, "2>", out.file)
-    
-    cat("BWA - Starting read mapping ...\n")
-    ti.search <- Sys.time()
-    system(run.bwa)   
-    cat("Runtime:", round(as.numeric(
-      difftime(Sys.time(), ti.search, units = "mins")), digits = 4), "min.\n")
-    cat("Mapping done!\n")
-    cat("Output files: \n")
-    cat("Alignment file (sam format): \"", sam.file, "\". \n", sep = "")
-    cat("Log file: \"", out.file, "\". \n", sep = "")
-    
-    ## Preparing dictionary - reference sequences
-    cat("Local realignment - Preparing \"", mod.file, "\" to use as reference", 
-        " ...\n", sep = "")
-    in.file <- file.path(in.modDir, 
-                         paste(mod.filename, '_modComb.dict', sep = ""))
-    
-    if (!file.exists(in.file)) {
-      system(paste('java -jar ../gatk/picard-tools-1.129/picard.jar ', 
-                   'CreateSequenceDictionary R=', mod.file,  
-                   ' O=', in.file, sep = ""))
-    }
-    
-    ## Indexing - reference sequences
-    out.file <- file.path(in.modDir,
-                          paste(mod.file, '_modComb.fasta.fai', sep = ""))
-    if (!file.exists(out.file)) {
-      system(paste('samtools faidx', mod.file))
-    } 
-    
-    
-    ## Converting SAM to BAM and sorting
-    bam.file <- 
-      file.path(out.dir, 
-                paste(out.filename.run2, "_bwaMEM_Mcomp.bam", sep = ""))
-    cat("Local realignment - Sorting bam file: \"", bam.file, "\" ... \n", 
-        sep = "")
-
-    if (!file.exists(bam.file)) {
-      system(paste('samtools view -b -S -o', bam.file, sam.file))
-    }
-    
-    # BAM - sorted by coordinates
-    
-    if (!file.exists(paste(out.dir, out.filename.run2, '_bwaMEM_', 
-                           'sortedPicard.bam', sep = ""))) {
-      system(paste('java -jar ../gatk/picard-tools-1.129/picard.jar SortSam ', 
-                   'INPUT=', out.dir, out.filename.run2, '_bwaMEM.bam ', 
-                   'OUTPUT=', out.dir, out.filename.run2, '_bwaMEM_', 
-                   'sortedPicard.bam SORT_ORDER=coordinate', sep = ""))
-    }
-    # Mark read duplicates
-    # Duplicated could bias variant detection by adding excessive coverage 
-    # depth at a variant locus
-    if (bwa.dupl) {
-      cat("Local realignment - Mark read duplicates ... \n")
-      system(paste('java -jar ../gatk/picard-tools-1.129/picard.jar ', 
-                   'MarkDuplicates INPUT=', out.dir, out.filename.run2, 
-                   '_bwaMEM_sortedPicard.bam OUTPUT=', out.dir, 
-                   out.filename.run3, '.bam METRICS_FILE=', out.dir, 
-                   out.filename.run3, '_metrics.txt', sep = ""))
-      # Add or replace read groups
-      system(paste('java -jar ../gatk/picard-tools-1.129/picard.jar ', 
-                   'AddOrReplaceReadGroups INPUT=', out.dir, out.filename.run3, 
-                   '.bam OUTPUT=', out.dir, out.filename.run3, 
-                   '_readGroup.bam RGID=group1 RGLB=lib1 RGPL=illumina ', 
-                   'RGPU=unit1 RGSM=sample1', sep = ""))
-    } else {
-      # Add or replace read groups
-      system(paste('java -jar ../gatk/picard-tools-1.129/picard.jar ', 
-                   'AddOrReplaceReadGroups INPUT=', out.dir, out.filename.run3, 
-                   '_sortedPicard.bam OUTPUT=', out.dir, out.filename.run3, 
-                   '_readGroup.bam RGID=group1 RGLB=lib1 RGPL=illumina ', 
-                   'RGPU=unit1 RGSM=sample1', sep = ""))
-    }
-    
-    # Index bam file
-    system(paste('java -jar ../gatk/picard-tools-1.129/picard.jar ', 
-                 'BuildBamIndex INPUT=', out.dir, out.filename.run3, 
-                 '_readGroup.bam', sep = ""))
-    cat("Local realignment - identify intervals for local realignment. \n")
-    # Intervals for realignment
-    system(paste('java -jar ../gatk/GenomeAnalysisTK.jar -T ', 
-                 'RealignerTargetCreator -R ', in.modDir, mod.filename, 
-                 '_modComb.fasta -I ', out.dir, out.filename.run3, 
-                 '_readGroup.bam -o ', out.dir, out.filename.run3, 
-                 '_forIndelRealigner.intervals', sep = ""))
-    cat("Local realignment. \n")
-    # Realignment
-    system(paste('java -jar ../gatk/GenomeAnalysisTK.jar -T IndelRealigner -R ',
-                 in.modDir, mod.filename, '_modComb.fasta -I ', out.dir,
-                 out.filename.run3, '_readGroup.bam -targetIntervals ',
-                 out.dir, out.filename.run3, '_forIndelRealigner.intervals -o ', 
-                 out.dir, out.filename.run3, '_realigned.bam', 
-                 sep = ""))  
-    # Convert BAM to SAM
-    system(paste('samtools view ', out.dir, out.filename.run3, 
-                 '_realigned.bam > ', out.dir, out.filename.run3, 
-                 '_realigned.sam', sep = ""))
-    
     if (run[4] == 1) {
       if (bwa.dupl) {
-        res.sam.realn <- scan(file = paste(out.dir, out.filename.run3, 
-                                           "_realigned.sam", sep = ""), 
-                              what = list(character(), integer(), character(), 
-                                          integer(), integer(), character(), 
-                                          character(), integer(), integer(), 
-                                          character(), character(), character(),
-                                          character(), character(), character(),
-                                          character(), character()), skip = 0,
-                              flush = TRUE, fill = TRUE, quote = "")
+        
+        res.sam.realn <- 
+          scan(file = sam.file, 
+               what = list(character(), integer(), character(), integer(), 
+                           integer(), character(), character(), integer(), 
+                           integer(), character(), character(), character(),
+                           character(), character(), character(), character(),
+                           character()), 
+               skip = 0, flush = TRUE, fill = TRUE, quote = "")
         names(res.sam.realn) <- c("readID", "flag", "refID", "refPOS", "mapQ", 
                                   "CIGAR", "", "", "", "readSeq", "readQuality",
                                   "mismatchPOS", "", "", "editDistance", "", "")
+        
       } else {
-        res.sam.realn <- scan(file = paste(out.dir, out.filename.run3, 
-                                           "_realigned.sam", sep = ""), 
-                              what = list(character(), integer(), character(), 
-                                          integer(), integer(), character(), 
-                                          character(), integer(), integer(), 
-                                          character(), character(), character(),
-                                          character(), character(), character(),
-                                          character()), skip = 0, 
-                              flush = TRUE, fill = TRUE, quote = "") 
+        
+        res.sam.realn <- 
+          scan(file = sam.file, 
+               what = list(character(), integer(), character(), integer(),
+                           integer(), character(), character(), integer(),
+                           integer(), character(), character(), character(),
+                           character(), character(), character(), character()),
+               skip = 0, flush = TRUE, fill = TRUE, quote = "") 
         names(res.sam.realn) <- c("readID", "flag", "refID", "refPOS", "mapQ", 
                                   "CIGAR", "", "", "", "readSeq", "readQuality",
                                   "mismatchPOS", "", "editDistance", "", "")
+        
       }
       keep <- append(keep, c("res.sam.realn"))
+      
     } else {
-      res.sam.realn <- scan(file = paste(out.dir, out.filename.run3, 
-                                         "_realigned.sam", sep = ""), 
-                            what = list(character(), integer()), skip = 0, 
-                            flush = TRUE, fill = TRUE, quote = "") 
+      
+      res.sam.realn <- 
+        scan(file = sam.file,
+             what = list(character(), integer()), 
+             skip = 0, flush = TRUE, fill = TRUE, quote = "") 
       names(res.sam.realn) <- c("readID", "flag")
     }
+    
     reads.dupl <- 
       sum(res.sam.realn[["flag"]] == 1024 | res.sam.realn[["flag"]] == 1040)
     reads.map <- 

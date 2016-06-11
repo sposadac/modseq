@@ -1,4 +1,4 @@
-GetInputFile <- function(wdir) {
+GetReadsFile <- function(wdir) {
   
   if (paired.flag == 1) {  
     

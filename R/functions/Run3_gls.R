@@ -1,8 +1,8 @@
- Run3_gls <- function(patterns = NULL, reads, num.reads, in.modDir, mod.filename, 
-                     res.listName, res.counts.filename, out.dir, 
-                     gls.ambiguity = TRUE, gls.direction = "f", gls.mma = 0,
-                     mem.trace = FALSE, memTrace = NULL, run.info = "ModSeq", 
-                     modseq.dir = NULL, num.cores = numeric(0)) {
+ Run3_gls <- function(patterns=NULL, reads, num.reads=NULL, in.modDir, 
+                      mod.filename, res.listName, res.counts.filename, 
+                      gls.ambiguity=TRUE, gls.direction="f", gls.mma=0, 
+                      mem.trace=FALSE, memTrace=NULL, run.info="ModSeq", 
+                      modseq.dir=NULL, out.dir=NULL, num.cores=numeric(0)) {
   
   # **TODO**: verbose level (display info per search round?)
   # **TODO**: map.mode pairwise alignment
@@ -15,12 +15,15 @@
   # num.cores   (optional) number of cores available for performing parallel 
   #             tasks.
   
-  ## Whenever modseq path is not specified, assumed to be the current working
-  #  directory
+  ## Whenever modseq path or output directory are not specified, assumed to be 
+  #  the current working directory
   if (is.null(modseq.dir)) {
     modseq.dir <- getwd()
     warning("Object \'modseq.dir\' not found, set to: \"", modseq.dir, "\".")
   } 
+  if (is.null(out.dir)) {
+    out.dir <- getwd()
+  }
    
   source(file.path(modseq.dir, "R/functions/Search_vmatchV2.R"))
   source(file.path(modseq.dir, "R/functions/PlotModuleCounts.R"))
@@ -36,6 +39,10 @@
       LoadModuleTable(in.modulesDir = in.modDir, modules.filename = mod.filename) 
   }
   mod.tot <- ncol(patterns)
+  
+  if (is.null(num.reads)) {
+    num.reads <- length(reads)
+  }
   
   ## Pattern search
   ti.search <- Sys.time()

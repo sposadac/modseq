@@ -494,22 +494,72 @@ if (run[3] == 1 || run[4] == 1 || run[5] == 1) {
         gatk.path <- character(0)
       } else {
         if (!is.character(gatk.path)) {
-          warning("Invalid data type for \'gatk.path\', \"", class(gatk.path), "\"",
-                  ".\nObject \'gatk.path\' is set to character(0).")
+          warning("Invalid data type for \'gatk.path\', \"", class(gatk.path), 
+                  "\".\nObject \'gatk.path\' is set to character(0).")
           gatk.path <- character(0)
-        } else if (length(gatk.path) > 0 && (gatk.path == "" || gatk.path == " ")) {
+        } else if (length(gatk.path) > 0 && 
+                     (gatk.path == "" || gatk.path == " ")) {
           gatk.path <- character(0)
         }    
       }
       if (length(gatk.path) > 0) {
         if (!file.exists(gatk.path)) {
-          stop("Invalid path for gatk jar file, \"", gatk.path, "\". \n")
+          stop("Invalid path for gatk's jar file, \"", gatk.path, "\". \n")
         }
         if (!file.exists(file.path(gatk.path, "GenomeAnalysisTK.jar"))) {
-          stop("gatk jar file not found, \"", 
+          stop("gatk's jar file not found, \"", 
                file.path(gatk.path, "GenomeAnalysisTK.jar"), "\". \n")
         }
       }  
+      
+      if (!exists("picard.path")) {
+        warning("Object \'picard.path\' not found, set to default value: ", 
+                "character(0).")
+        picard.path <- character(0)
+      } else {
+        if (!is.character(picard.path)) {
+          warning("Invalid data type for \'picard.path\', \"", class(picard.path),
+                  "\".\nObject \'picard.path\' is set to character(0).")
+          picard.path <- character(0)
+        } else if (length(picard.path) > 0 && 
+                     (picard.path == "" || picard.path == " ")) {
+          picard.path <- character(0)
+        }    
+      }
+      if (length(picard.path) > 0) {
+        if (!file.exists(picard.path)) {
+          stop("Invalid path for picard's jar file, \"", picard.path, "\". \n")
+        }
+        if (!file.exists(file.path(picard.path, "picard.jar"))) {
+          stop("picard jar file not found, \"", 
+               file.path(picard.path, "picard.jar"), "\". \n")
+        }
+      } 
+      
+      if (!exists("samtools.path")) {
+        warning("Object \'samtools.path\' not found, set to default value: ", 
+                "character(0).")
+        samtools.path <- character(0)
+      } else {
+        if (!is.character(samtools.path)) {
+          warning("Invalid data type for \'samtools.path\', \"", class(samtools.path),
+                  "\".\nObject \'samtools.path\' is set to character(0).")
+          samtools.path <- character(0)
+        } else if (length(samtools.path) > 0 && 
+                     (samtools.path == "" || samtools.path == " ")) {
+          samtools.path <- character(0)
+        }    
+      }
+      if (length(samtools.path) > 0) {
+        if (!file.exists(samtools.path)) {
+          stop("Invalid path for samtools binary, \"", samtools.path, "\". \n")
+        }
+        if (!file.exists(file.path(samtools.path, "samtools"))) {
+          stop("samtools binary not found, \"", 
+               file.path(samtools.path, "samtools"), "\". \n")
+        }
+      }
+      
     }
     
     if (run[4] == 1 || run[5] == 1) {

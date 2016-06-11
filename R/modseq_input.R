@@ -116,15 +116,19 @@ gls.direction <- "f"
 gls.mma       <- 0
 
 ## bwa mem
-# bwa.path:   path to the bwa binaries (if not in the PATH).
-# bwa.cVal:   discard a MEM if it has more than bwa.cVal occurrences in the 
-#             genome.
-# bwa.dupl:   mark read duplicates.
-# gatk.path:  path to jar file
-bwa.path <- character(0)  #"/home/susanap/Documents/bwa/"
-bwa.cVal <- 20000
-bwa.dupl <- TRUE
-gatk.path <- "/Users/susanap/Documents/ModSeq/modseq/bin/GenomeAnalysisTK-3.6"
+# bwa.path:       path to the bwa binaries (if not in the PATH).
+# bwa.cVal:       discard a MEM if it has more than bwa.cVal occurrences in  
+#                 the genome.
+# bwa.dupl:       mark read duplicates.
+# gatk.path:      path to jar file (if not in the PATH).
+# picard.path:    path to jar file (if not in the PATH).
+# samtools.path:  path to binary (if not in the PATH).
+bwa.path      <- character(0)  #"/home/susanap/Documents/bwa/"
+bwa.cVal      <- 20000
+bwa.dupl      <- TRUE
+gatk.path     <- "/Users/susanap/Documents/ModSeq/modseq/bin/GenomeAnalysisTK-3.6"
+picard.path   <- "/Users/susanap/Documents/ModSeq/modseq/bin/picard-tools-2.4.1"
+samtools.path <- character(0)
 
 ## Filtering (0,Inf)
 # Filtering options should be greater than 0.
