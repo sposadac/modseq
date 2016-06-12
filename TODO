@@ -13,6 +13,7 @@ Run3_gls
 
 Run4_bwa
 -> Exclude duplicates in the distribution (flags 1024, 1040)?
+-> Plot of the progression of the alignment filtering
 
 -> Susana: Docker (option for running modseq in a platform compatible way)
 RStudio server: To share files and folders between the docker image and host OS one can use the -v option. This acts much like running RStudio in the working directory.

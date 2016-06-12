@@ -43,13 +43,13 @@ if (map.mode == "gls") {
   }
   
   if (gls.direction == "f" ) {
-    res.counts.filename <- paste(res.counts.filename, "_grepLike_forward", 
+    res.counts.filename <- paste(res.counts.filename, "_gls_forward", 
                                  sep = "")
-    res.listName <- paste(res.listName, "_grepLike_forward", sep = "")
+    res.listName <- paste(res.listName, "_gls_forward", sep = "")
   } else {
-    res.counts.filename <- paste(res.counts.filename, "_grepLike_reverse", 
+    res.counts.filename <- paste(res.counts.filename, "_gls_reverse", 
                                  sep = "")
-    res.listName <- paste(res.listName, "_grepLike_reverse", sep = "")
+    res.listName <- paste(res.listName, "_gls_reverse", sep = "")
   }
   res.counts.filename <- paste(res.counts.filename, "_ModCounts", sep = "")
 } else if (map.mode == "bwa") {

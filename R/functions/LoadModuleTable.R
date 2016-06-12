@@ -1,4 +1,4 @@
-LoadModuleTable <- function(in.modulesDir, modules.filename = NULL) {
+LoadModuleTable <- function(in.modulesDir, modules.filename=NULL, list=FALSE) {
   
   if (is.null(modules.filename)) {
     in.file <- file.path(in.modulesDir)
@@ -16,7 +16,28 @@ LoadModuleTable <- function(in.modulesDir, modules.filename = NULL) {
       )
     cat("Table of modules used: \"", in.file, "\". \n", sep = "")
     
-    return(patterns)
+    if (list) {
+      mod.number <- sapply(patterns, function(x) length(na.omit(x)))
+      
+      patterns.list <- as.character(na.omit(as.vector(as.matrix(patterns))))
+      if (length(unique(row.names(patterns))) == sum(mod.number)) {
+        ## Apply when each modular variant has a unique name
+        names(patterns.list) <- row.names(patterns)
+        
+      } else {
+        ## Create unique names for each modular variant (ignoring common  
+        #  feature among variants or different modules).
+        names(patterns.list) <- 
+          tolower(names(unlist(lapply(mod.number, function(x) seq(1:x)))))
+        
+      }
+      
+      return(list(patterns, patterns.list, mod.number))
+      
+    } else {
+      return(patterns)
+      
+    }
     
   } else {
     
@@ -25,3 +46,4 @@ LoadModuleTable <- function(in.modulesDir, modules.filename = NULL) {
   }
   
 }
+

@@ -27,7 +27,9 @@ ModuleCombinationsGen <- function(modules.filename, pattern = character(0),
   if (length(num.cores) == 0) {
     num.cores <- detectCores()
   }
-  if (length(pattern) == 0) {
+  
+  ## Loading module table
+  if (!is.data.frame(patterns)) {
     if (!existsFunction("LoadModuleTable")) {
       source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
     }

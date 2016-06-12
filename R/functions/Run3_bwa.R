@@ -30,7 +30,7 @@ Run3_bwa <- function(reads.file, in.modDir, mod.filename, bwa.path, bwa.cVal,
         source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
       }
       patterns <- LoadModuleTable(in.modulesDir = in.modDir, 
-                                  modules.filename = mod.filename) 
+                                  modules.filename = mod.filename, list = FALSE) 
     }
     
     ModuleCombinationsGen(modules.filename = mod.filename, pattern = patterns, 

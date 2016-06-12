@@ -47,7 +47,7 @@ Run2_peAssembly <- function(readF1, readF2, qtrim.flag, forward.file,
   
   ## Setting pandaseq variable
   if (length(pandaseq.path) == 0) {
-    pandaseq.path <- "pandaseq"
+    pandaseq <- "pandaseq"
   } else {
     pandaseq <- file.path(pandaseq.path, "pandaseq")
   }
@@ -80,7 +80,7 @@ Run2_peAssembly <- function(readF1, readF2, qtrim.flag, forward.file,
               paste(out.filename.run2, "_unalignedPANDAseq.fastq", sep = ""))
   assign(paste("runPANDAseq_", out.filename.run2, sep = ""), 
          paste(pandaseq, " -f ", f1, " -r ", f2, " -C qualString:", fastq.file,
-               " -B -F -w ", fasta.file, " -g ", out.file, " -U ", 
+               " -B -w ", fasta.file, " -g ", out.file, " -U ", 
                unalign.file, sep = ""))
   
   ## Temporary work-around (when plugin qualString is not available)

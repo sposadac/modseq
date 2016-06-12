@@ -27,16 +27,19 @@
    
   source(file.path(modseq.dir, "R/functions/Search_vmatchV2.R"))
   source(file.path(modseq.dir, "R/functions/PlotModuleCounts.R"))
-  source(file.path(modseq.dir, "R/functions/VariantCounts.R"))
+  source(file.path(modseq.dir, "R/functions/VariantCountsPerRound.R"))
   
   if (length(num.cores) == 0) {
     num.cores <- detectCores()
   }
   
   if (!is.data.frame(patterns)) {
-    source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
+    if (!existsFunction("LoadModuleTable")) {
+      source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
+    }
     patterns <- 
-      LoadModuleTable(in.modulesDir = in.modDir, modules.filename = mod.filename) 
+      LoadModuleTable(in.modulesDir = in.modDir, 
+                      modules.filename = mod.filename, list = FALSE) 
   }
   mod.tot <- ncol(patterns)
   
@@ -115,8 +118,7 @@
     file.path(out.dir, paste("resList_", res.listName, ".rda", sep = ""))
   cat("Exporting list containing results of the read mapping: \"", out.file,
       "\".\n", sep = "")
-  ## **TESTING**
-  #save(res.list, file = out.file)
+  save(res.list, file = out.file)
   
   if (mem.trace) {
     memTrace <- c(memTrace, MemTrace())
@@ -158,11 +160,12 @@
                    plot.label = run.info, gls.ambiguity = gls.ambiguity)
   
   ### Distribution of modular variants per search round
-  VariantCounts(patterns = patterns, num.reads = num.reads,
-                counts = counts, labels = levels(res.counts$round), 
-                file.prefix = res.counts.filename, out.dir = out.dir,
-                gls.direction = gls.direction, modseq.dir = modseq.dir, 
-                num.cores = num.cores)
+  VariantCountsPerRound(
+    patterns = patterns, num.reads = num.reads, counts = counts, 
+    labels = levels(res.counts$round), file.prefix = res.counts.filename,
+    out.dir = out.dir, gls.direction = gls.direction, modseq.dir = modseq.dir, 
+    num.cores = num.cores
+    )
 
   if (sum(gls.mma > 0) > 0) {
     cat("Maximum mismatch allowance for module", which(gls.mma > 0), "was", 

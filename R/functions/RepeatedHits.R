@@ -36,9 +36,14 @@ RepeatedHits <- function(res.list, data = NULL, patterns = NULL, num.reads,
   }
   
   if (!is.data.frame(patterns)) {
-    source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
+    
+    if (!existsFunction("LoadModuleTable")) {
+      source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
+    }
+  
     patterns <- 
-      LoadModuleTable(in.modulesDir = in.modDir, modules.filename = mod.filename) 
+      LoadModuleTable(in.modulesDir = in.modDir, 
+                      modules.filename = mod.filename, list = FALSE) 
   }
   
   if (is.null(data)) {

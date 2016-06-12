@@ -1,4 +1,4 @@
-plotReadLengthDistribution <- function(reads, out.filename, out.dir) {
+PlotReadLengthDistribution <- function(reads, out.filename, out.dir) {
   
   # Average quality per read
   out.file <- 

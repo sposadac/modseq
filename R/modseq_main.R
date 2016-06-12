@@ -35,6 +35,12 @@ log.file <- file.path(out.dir,
                       paste("out_", out.filename.run2, "_run",
                             paste(names(run)[which(run == 1)], collapse = "_"),
                             ".txt", sep = ""))
+if (run[3] == 1 | run[4] == 1) {
+  log.file <- file.path(out.dir, 
+                        paste("out_", out.filename.run3, "_run",
+                              paste(names(run)[which(run == 1)], collapse = "_"),
+                              ".txt", sep = ""))
+}
 if (file.exists(log.file)) {
   output <- file(log.file, open = "at")
 } else {
@@ -48,8 +54,8 @@ keep <- ls()
 # Read fastq-files
 if (run[1] == 1 || (run[2] == 1 && qtrim.flag == 0)) { 
   
-  source(file.path(modseq.dir, 'R/functions/PlotQualityDistribution.R'))
-  source(file.path(modseq.dir, 'R/functions/PlotReadLengthDistribution.R'))
+  source(file.path(modseq.dir, "R/functions/PlotQualityDistribution.R"))
+  source(file.path(modseq.dir, "R/functions/PlotReadLengthDistribution.R"))
   
   cat("Sequencing mode: \"", seq.mode, "\".\n", sep = "")
   if (seq.mode == "PE") {
@@ -236,7 +242,8 @@ if (run[3] == 1) {
   ## Loading module table
   source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
   patterns <- 
-    LoadModuleTable(in.modulesDir = in.modDir, modules.filename = mod.filename)
+    LoadModuleTable(in.modulesDir = in.modDir, modules.filename = mod.filename,
+                    list = FALSE)
   
   source((file.path(modseq.dir, "R/functions/GetReadsFile.R")))
   reads.file <- GetReadsFile(wdir)
@@ -299,7 +306,7 @@ if (run[3] == 1) {
       
       source(file.path(modseq.dir, "R/functions/LoadAlignmentFile.R"))
       res.sam.realn <- LoadAlignmentFile(sam.file = sam.file, bwa.dupl = bwa.dupl)
-      keep <- append(keep, c("res.sam.realn"))
+      keep <- append(keep, "res.sam.realn")
       
     } else {
       
@@ -340,7 +347,7 @@ if (run[3] == 1) {
   }
   
   if (run[4] == 1 || run[5] == 1) {
-    keep <- append(keep, c("num.reads", "patterns", "LoadModuleTable"))
+    keep <- append(keep, c("num.reads", "LoadModuleTable"))
     
     if (existsFunction("ModuleCombinationsGen")){
       keep <- append(keep, "ModuleCombinationsGen")
@@ -368,9 +375,7 @@ if (run[4] == 1) {
   
   num.cores <- detectCores()
   
-  if (!exists("patterns")) {
-    patterns <- file.path(in.modDir, paste(mod.filename, ".csv", sep = ""))
-  }
+  patterns <- file.path(in.modDir, paste(mod.filename, ".csv", sep = ""))
   
   ## Generating module combinations and loading fasta file 
   if (!exists("mod.comb")) {    
@@ -404,42 +409,51 @@ if (run[4] == 1) {
     if (!exists("res.list.ids")) {
       res.list.ids <- NULL
     }
+    
     source(file.path(modseq.dir, "R/functions/Run4_gls.R"))
-    Run4_gls(patterns = patterns, res.listName = res.listName, 
-             res.list = res.list, res.list.ids = res.list.ids, 
-             res.list.lengths = res.list.lengths, mod.comb = mod.comb,   
-             out.filename = out.filename.run3, modseq.dir = modseq.dir, 
-             out.dir = out.dir, num.cores = num.cores)
+    Run4_gls(
+      patterns = patterns, mod.comb = mod.comb, res.listName = res.listName, 
+      res.list = res.list, res.list.ids = res.list.ids, 
+      res.list.lengths = res.list.lengths, out.filename = out.filename.run3,
+      modseq.dir = modseq.dir, out.dir = out.dir, num.cores = num.cores
+      )
 
   } else if (map.mode == "bwa") { 
     
+    
+    if (!exists("num.reads")) {
+      num.reads <- NULL
+    }
     if (!exists("res.sam.realn")) {
       res.sam.realn <- 
         file.path(out.dir, paste(out.filename.run3, "_realigned.sam", sep = ""))
     }
     
-    out.filename = out.filename.run3
+    source(file.path(modseq.dir, "R/functions/Run4_bwa.R"))
+    retList <- Run4_bwa(
+      patterns = patterns, mod.comb = mod.comb, res.sam.realn = res.sam.realn,
+      bwa.dupl = bwa.dupl, coverage.left = coverage.left, 
+      coverage.right = coverage.right, mapQ.thold = mapQ.thold, 
+      editDist.thold = editDist.thold, num.reads = num.reads,
+      out.filename = out.filename.run3,  modseq.dir = modseq.dir,
+      out.dir = out.dir, num.cores = num.cores
+      )
+    
+    res.sam.filt <- retList[[1]]
+    editDistance <- retList[[2]] 
+    aux.modDist <- retList[[3]]
     
     if (run[5] == 1) {
-      keep <- append(keep, c("res.sam.filt", "ind.edit", "ind.exactMatch", 
-                             "editDistance", "patterns", "patterns.list", 
-                             "mod.comb", "aux.modDist"))
+      keep <- append(keep, c("mod.comb", "res.sam.filt", "editDistance", 
+                             "aux.modDist"))
     }
   }
-  
   
   if (mem.trace) {
     memTrace <- c(memTrace, MemTrace())
   }
   
-  if (run[5] == 1) {
-    keep <- append(keep, c("num.cores"))
-  }
   rm(list=ls()[!(ls() %in% keep)]) 
-  
-  if (exists("reads.subj")) {
-    rm(reads.subj)
-  }
   
   if (exists("res.list")) {
     rm(res.list)
@@ -447,7 +461,414 @@ if (run[4] == 1) {
 }
 
 ###############################################################################
+## 5: VARIANT CALLING
+###############################################################################
+if (run[5] == 1) {
+  cat("========================================================================\n")
+  cat("Detection of nucleotide variants and short indels. \n")
+  cat("========================================================================\n")
+  
+  if (!exists("keep")) {
+    keep <- ls()
+  }
+  
+  num.cores <- detectCores()
+  if (!exists("num.reads")) {
+    num.reads <- NULL
+  }
+  
+  if (map.mode == "gls") {
+    ## **TODO**: variant calling (mismatches and indels), when gls.mma > 0
+    
+  } else if (map.mode == "bwa") {
+    ## **TODO**: verbose level
+    
+    ## Loading module table
+    if (!existsFunction("LoadModuleTable")) {
+      source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
+    }
+    
+    retList <- LoadModuleTable(in.modulesDir = in.modDir,
+                               modules.filename = mod.filename, list = TRUE) 
+    patterns <- retList[[1]]
+    patterns.list <- retList[[2]]
+    
+    ## Generating module combinations and loading fasta file 
+    if (!exists("mod.comb")) {    
+      mod.file <- 
+        file.path(in.modDir, paste(mod.filename, "_modComb.fasta", sep = ""))
+      
+      if (!file.exists(mod.file)) {
+        
+        if (!existsFunction("ModuleCombinationsGen")) {
+          source(file.path(modseq.dir, "R/functions/ModuleCombinationsGen.R"))
+        }
+        
+        ModuleCombinationsGen(modules.filename = mod.filename, pattern = patterns, 
+                              in.modDir = in.modDir, modseq.dir = modseq.dir, 
+                              num.cores = num.cores)
+      }
+      
+      cat("Reading reference sequences ... \n")
+      mod.comb <- readDNAStringSet(mod.file)
+      
+    }
+    mod.comb.len <- length(mod.comb)
+    
+    if (!exists("res.sam.filt")) {
+      
+      if (!existsFunction("AlignmentsFiltering")) {
+        source(file.path(modseq.dir, "R/functions/AlignmentsFiltering.R"))
+      }
+      
+      if (!exists("res.sam.realn")) {
+        res.sam.realn <- 
+          file.path(out.dir, paste(out.filename.run3, "_realigned.sam", sep = ""))
+      }
+      
+      retList <- AlignmentsFiltering(
+        mod.comb = mod.comb, res.sam.realn = res.sam.realn, bwa.dupl = bwa.dupl,
+        coverage.left = coverage.left, coverage.right = coverage.right, 
+        mapQ.thold = mapQ.thold, editDist.thold = editDist.thold, 
+        num.reads =  num.reads, modseq.dir = modseq.dir, num.cores = num.cores
+      )
+      res.sam.filt <- retList[[1]]
+      editDistance <- retList[[2]]
+      ind.edit <- retList[[3]]
+      
+      if (!exists("aux.modDist")) {
+        aux.modDist <- table(
+          factor(unlist(strsplit(res.sam.filt[["refID"]][ind.edit], split = ":")), 
+                 levels = names(patterns.list))
+        )
+      }
+      
+    }
+    
+    mod.len <- nchar(patterns.list)
+    
+    ### 1. "Soft Clipping" reads and quality strings 
+    cigar.ops <- 
+      explodeCigarOps(res.sam.filt[["CIGAR"]][
+        editDistance <= editDist.thold & editDistance > 0]) 
+    cigar.ops.len <- 
+      explodeCigarOpLengths(res.sam.filt[["CIGAR"]][
+        editDistance <= editDist.thold & editDistance > 0])
+    
+    source(file.path(modseq.dir, "R/functions/SeqTrimming.R"))
+    reads.trimmed <- 
+      DNAStringSet(mcmapply(
+        SeqTrimming, cigarOps = cigar.ops, cigarOpLengths = cigar.ops.len, 
+        seq = res.sam.filt[["readSeq"]][
+          editDistance <= editDist.thold & editDistance > 0], 
+        mc.cores = num.cores))
+  
+    ## Exporting object containing results of the alignment filtering 
+    #out.file <- 
+    #  file.path(out.dir, 
+    #            paste(out.filename.run3, "_trimmedReads.rda", sep = ""))
+    #cat("Exporting object containing trimmed reads : \"", 
+    #    out.file, "\".\n", sep = "")
+    #save(reads.trimmed, file = out.file)
+    
+    qual.trimmed <- 
+      BStringSet(mcmapply(
+        SeqTrimming, cigarOps = cigar.ops, cigarOpLengths = cigar.ops.len, 
+        seq = res.sam.filt[["readQuality"]][
+          editDistance <= editDist.thold & editDistance > 0], 
+        mc.cores = num.cores))
+    
+    ## Exporting object containing results of the alignment filtering 
+    #out.file <- 
+    #  file.path(out.dir, 
+    #            paste(out.filename.run3, "_trimmedQualityScores.rda", sep = ""))
+    #cat("Exporting object containing trimmed quality-strings : \"", 
+    #    out.file, "\".\n", sep = "")
+    #save(qual.trimmed, file = out.file)
+    
+    ## **TODO**: MD field is not recomputed for realigned reads, write module
+    # NULL as output for OC (stands for original cigar) - tag
+    md.ops <- 
+      mclapply(strsplit(
+        res.sam.filt[["mismatchPOS"]][
+          editDistance <= editDist.thold & editDistance > 0], split = ":"),
+        function(x) strsplit(x[3], split = "[0-9]+")[[1]], 
+        mc.cores = num.cores)
+    md.ops.len <- 
+      mclapply(strsplit(
+        res.sam.filt[["mismatchPOS"]][
+          editDistance <= editDist.thold & editDistance > 0], split = ":"),
+        function(x) as.numeric(strsplit(x[3], split = "[ACTGN^]+")[[1]]), 
+        mc.cores = num.cores)
+    mod.len.cumsum <- 
+      mclapply(res.sam.filt[["refID"]][
+        editDistance <= editDist.thold & editDistance > 0], 
+        function(x) cumsum(c(1, as.numeric(head(
+          mod.len[strsplit(x, split = ":")[[1]]], n = -1)))), 
+        mc.cores = num.cores)
+    names.mod.len.cumsum <- 
+      mclapply(res.sam.filt[["refID"]][
+        editDistance <= editDist.thold & editDistance > 0],
+        function(x) names(mod.len[strsplit(x, split = ":")[[1]]]), 
+        mc.cores = num.cores)
+    
+    leftclipped <- as.integer(
+      res.sam.filt[["refPOS"]][editDistance <= editDist.thold & editDistance > 0] - 1)
+    
+    library(Rcpp)
+    
+    ### Mismatches
+    if (mismatch.filter) {
+      
+      sourceCpp(
+        file.path(modseq.dir, 
+                  "src/mdSubstitutionAlongReferenceSpaceQualFilter.cpp"))
+      
+      substitution.modPos <- 
+        mcmapply(FUN = mdSubstitutionAlongReferenceSpaceQualFilter, 
+                 md_ops_lengths = md.ops.len, md_ops = md.ops, 
+                 cigar_ops = cigar.ops, cigar_ops_lengths =  cigar.ops.len,
+                 read = as.character(reads.trimmed), 
+                 qual = as.character(qual.trimmed), 
+                 mod_len_cumsum = mod.len.cumsum, 
+                 names_mod_len_cumsum = names.mod.len.cumsum, 
+                 offset = leftclipped, 
+                 qthold = mismatch.qthold, mc.cores = num.cores)
+      
+    } else {
+      
+      sourceCpp(
+        file.path(modseq.dir, "src/mdSubstitutionAlongReferenceSpace.cpp"))
+      
+      substitution.modPos <- 
+        mcmapply(FUN = mdSubstitutionAlongReferenceSpace, 
+                 md_ops_lengths = md.ops.len, md_ops = md.ops, 
+                 cigar_ops = cigar.ops, cigar_ops_lengths =  cigar.ops.len, 
+                 read = as.character(reads.trimmed), 
+                 mod_len_cumsum = mod.len.cumsum, 
+                 names_mod_len_cumsum = names.mod.len.cumsum, 
+                 offset = leftclipped[ind.coverage][ind.mapQ][
+                   editDistance <= editDist.thold & editDistance > 0], 
+                 mc.cores = num.cores)
+      
+      qualSubstitution.modPos <- 
+        mcmapply(FUN = mdSubstitutionAlongReferenceSpace, 
+                 md_ops_lengths = md.ops.len, md_ops = md.ops, 
+                 cigar_ops = cigar.ops, cigar_ops_lengths =  cigar.ops.len, 
+                 read = as.character(qual.trimmed), 
+                 mod_len_cumsum = mod.len.cumsum, 
+                 names_mod_len_cumsum = names.mod.len.cumsum, 
+                 offset = leftclipped,
+                 mc.cores = num.cores)
+      
+    }
+    names(substitution.modPos) <- res.sam.filt[["refID"]][
+      editDistance <= editDist.thold & editDistance > 0]
+    # TODO: verbose level
+    # save(substitution.modPos, file = paste(out.dir, out.filename.run3, '_substitutionModPos.rda', sep =""))
+    
+    aux.mismatch.modDist <- unlist(
+      mclapply(strsplit(unlist(substitution.modPos), split = ":"), 
+               function(x) x[1],  mc.cores = num.cores)
+      )
+    mismatch.modDist <- table(
+      factor(aux.mismatch.modDist, levels = names(patterns.list))
+      )
+    
+    source(file.path(modseq.dir, "R/functions/PlotMismatchesPerVariant.R"))
+    for (i in seq_along(patterns.list)) {
+      PlotMismatchesPerVariant(substitution.modPos = substitution.modPos, 
+                               ind = c(aux.mismatch.modDist == names(patterns.list)[i]), 
+                               mod.len = mod.len, var = names(patterns.list)[i], 
+                               tot = aux.modDist[names(patterns.list)[i]], 
+                               patterns = patterns.list, 
+                               filename = out.filename.run3, 
+                               subdirectory = '')
+    }
+    
+    df.mismatch <- data.frame("freq" = mismatch.modDist * 100 / 
+                                (aux.modDist * mod.len))
+    
+    out.file <- 
+      file.path(out.dir, 
+                paste(out.filename.run3, "_mismatchPerVariant_normalizedFreq_graph.pdf",
+                      sep = "")
+    pl.mismatch <- ggplot(df.mismatch, aes(x = freq.Var1, y = freq.Freq))
+    pl.mismatch <- pl.mismatch + 
+      geom_bar(stat = "identity", position = "identity", width = 0.7) +
+      labs(x = "Modular variants", y = "Normalized mismatch frequencies [%]") +
+      ggtitle("ModSeq | Distribution of mismatches per modular variants") + 
+      theme_bw() + 
+      theme(plot.title = element_text(face = "bold", size = 16),
+            text = element_text(size = 14))
+    ggsave(out.file, pl.mismatch, paper = "a4r", width = 12) 
+    
+    out.file <- 
+      file.path(out.dir, 
+                paste(out.filename.run3, "_mismatchPerVariant_normalizedFreq_table.csv",
+                      sep = "")
+    write.csv(as.data.frame(mismatch.modDist), file = out.file)
+    
+    ### Mismatches per module combination
+    mod.dstr <- sort(table(
+      res.sam.filt[["refID"]][editDistance <= editDist.thold & editDistance > 0]),
+      decreasing = TRUE)
+    
+    ### Poisson distribution
+    source(file.path(modseq.dir, "R/functions/PoissonSNVCall.R"))
+    substitution.modComb.poisson <- 
+      mcmapply(PoissonSNVCall, mod.dstr[mod.dstr >= min.coverage], 
+               names(mod.dstr)[mod.dstr >= min.coverage], 
+               MoreArgs = list(variant = substitution.modPos,
+                               error.rate = seq.error), mc.cores = num.cores)
+    # save(substitution.modComb.poisson, file = paste(out.dir, out.filename.run3, "_mismatchPerModComb.rda", sep = ""))
+    
+    aux <- unlist(mclapply(substitution.modComb.poisson, names, 
+                           mc.cores = num.cores), use.names = FALSE)
+    aux.len <- unlist(mclapply(substitution.modComb.poisson, length, 
+                               mc.cores = num.cores))
+    df.substitution.modComb <- 
+      data.frame("moduleCombination" = rep(names(aux.len), aux.len),
+                 "mismatch" = aux, 
+                 "count" = unlist(substitution.modComb.poisson, 
+                                  use.names = FALSE))
+    write.csv(df.substitution.modComb, 
+              file = paste(out.dir, out.filename.run3, 
+                           '_mismatchPerModComb_poisson_table.csv', sep = ""))
+    
+    substitution.modDist.poisson <- 
+      factor(unlist(mclapply(strsplit(unlist(
+        mclapply(substitution.modComb.poisson, names), use.names = FALSE), 
+        split = ":"), function(x) x[1]), use.names = FALSE), 
+        levels = names(patterns.list))
+    df.mismatch <- 
+      data.frame("freq" = as.numeric(table(substitution.modDist.poisson)) * 100 / 
+                   (aux.modDist * mod.len))
+    pl.mismatch <- ggplot(df.mismatch, aes(x = freq.Var1, y = freq.Freq))
+    pl.mismatch <- pl.mismatch + 
+      geom_bar(stat = "identity", position = "identity", width = 0.7) + 
+      labs(x = "Modular variants", y = "Normalized mismatch frequencies [%]") +
+      ggtitle("ModSeq | Distribution of mismatches per modular variants") + 
+      theme_bw() + 
+      theme(plot.title = element_text(face = "bold", size = 16),
+            text = element_text(size = 14))
+    ggsave(paste(out.dir, out.filename.run3, 
+                 '_MismatchPerVariant_normalizedFreq_poisson_graph.pdf', 
+                 sep = ""), pl.mismatch,  paper = "a4r", width = 12)
+    write.csv(as.data.frame(table(substitution.modDist.poisson)), 
+              file = paste(out.dir, out.filename.run3, 
+                           '_MismatchPerVariant_normalizedFreq_poisson_table.csv',
+                           sep = ""))
+    
+    ### Short indels
+    sourceCpp(file.path(modseq.dir, "src/indelsAlongReferenceSpace.cpp"))
+    indel.modPos <- 
+      mcmapply(FUN = indelsAlongReferenceSpace, cigar_ops = cigar.ops, 
+               cigar_ops_lengths = cigar.ops.len, 
+               mod_len_cumsum = mod.len.cumsum, 
+               names_mod_len_cumsum = names.mod.len.cumsum, 
+               offset = leftclipped, 
+               mc.cores = num.cores)
+    names(indel.modPos) <- res.sam.filt[["refID"]][
+      editDistance <= editDist.thold & editDistance > 0]
+    # save(indel.modPos, file = paste(out.dir, out.filename.run3, "_indelsModPos.rda", sep = ""))
+    
+    aux.indel.modDist <- 
+      unlist(mclapply(strsplit(unlist(indel.modPos), split = ":"), 
+                      function(x) x[2], mc.cores = num.cores))
+    aux.indel.type <- 
+      unlist(mclapply(strsplit(unlist(indel.modPos), split = ":"),
+                      function(x) x[1], mc.cores = num.cores))
+    indel.modDist <- table(factor(aux.indel.modDist, levels = names(patterns.list)))
+    df.indel <- 
+      data.frame("mod" = factor(aux.indel.modDist, levels = names(patterns.list)),
+                 "type" = aux.indel.type)
+    df.indel <- as.data.frame(table(df.indel))  # To normalize it
+    df.indel[df.indel$Freq == 0,]$Freq <- N
+    pl.indel <- ggplot(df.indel, aes(x=mod, y = as.numeric(Freq) * 100 / 
+                                       (rep(aux.modDist, 2) * rep(mod.len, 2)),
+                                     fill = type))
+    pl.indel <- pl.indel + 
+      geom_bar(stat = "identity", position = "dodge", width = 0.7) + 
+      labs(x = "Modular variants", y = "Normalized indel frequencies [%]") +
+      scale_fill_discrete(breaks = c("Del", "In"), 
+                          labels = c("Deletion", "Insertion"), 
+                          guide = guide_legend(reverse = TRUE)) + 
+      ggtitle("ModSeq | Distribution of indels per modular variants") + 
+      theme_bw() + 
+      theme(legend.position = "top", 
+            plot.title = element_text(face = "bold", size = 16),
+            text = element_text(size = 14))
+    ggsave(paste(out.dir, out.filename.run3, 
+                 '_IndelPerVariant_normalizedFreq_graph.pdf', sep = ""), 
+           pl.indel, paper = "a4r", width = 12)
+    write.csv(df.indel, file = paste(out.dir, out.filename.run3, 
+                                     '_IndelPerVariant_normalizedFreq_table.csv',
+                                     sep = ""))
+    
+    ### Indels per module combination
+    indel.modComb.poisson <- 
+      mcmapply(PoissonVarCall, mod.dstr[mod.dstr >= min.coverage], 
+               names(mod.dstr)[mod.dstr >= min.coverage], 
+               MoreArgs = list(indels = indel.modPos, error.rate = seq.error),
+               mc.cores = num.cores)
+    # save(indel.modComb.poisson, file = paste(out.dir, out.filename.run3, "_indelsPerModComb.rda", sep = ""))
+    
+    aux <- unlist(mclapply(indel.modComb.poisson, names, mc.cores = num.cores),
+                  use.names = FALSE)
+    aux.len <- unlist(mclapply(indel.modComb.poisson, length, 
+                               mc.cores = num.cores))
+    df.indel.modComb <- 
+      data.frame("moduleCombination" = rep(names(aux.len), aux.len),
+                 "indel" = aux, 
+                 "count" = unlist(indel.modComb.poisson, use.names = FALSE))
+    write.csv(df.indel.modComb, 
+              file = paste(out.dir, out.filename.run3, 
+                           '_IndelsPerModComb_poisson_table.csv', sep = ""))
+    
+    indel.modDist.poisson <- 
+      factor(unlist(mclapply(strsplit(unlist(mclapply(indel.modComb.poisson, names)),
+                                      split = ":"), function(x) x[2])),
+             levels = names(patterns.list))
+    aux.indel.type <- 
+      unlist(mclapply(strsplit(unlist(mclapply(indel.modComb.poisson, names)), 
+                               split = ":"), function(x) x[1], 
+                      mc.cores = num.cores))
+    df.indel <- data.frame("mod" = indel.modDist.poisson, 
+                           "type" = aux.indel.type)
+    df.indel <- as.data.frame(table(df.indel))  
+    df.indel[df.indel$Freq == 0,]$Freq <- NA
+    pl.indel<- ggplot(df.indel, aes(x = mod, y = as.numeric(Freq) * 100 /
+                                      (rep(aux.modDist, 2)*rep(mod.len, 2)),
+                                    fill = type))
+    pl.indel <- pl.indel + 
+      geom_bar(stat = "identity", position = "dodge", width = 0.7) + 
+      labs(x = "Modular variants", y = "Normalized indel frequencies [%]") +
+      scale_fill_discrete(breaks = c("Del", "In"), 
+                          labels = c("Deletion", "Insertion"), 
+                          guide = guide_legend(reverse = TRUE)) + 
+      ggtitle("ModSeq | Distribution of indels per modular variants") + 
+      theme_bw() + 
+      theme(legend.position = "top", 
+            plot.title = element_text(face = "bold", size = 16),
+            text = element_text(size = 14))
+    ggsave(paste(out.dir, out.filename.run3, 
+                 '_IndelsPerVariant_normalizedFreq_poisson_graph.pdf', 
+                 sep = ""), pl.indel,  paper = "a4r", width = 12)
+    write.csv(df.indel, 
+              file = paste(out.dir, out.filename.run3, 
+                           '_IndelPerVariant_normalizedFreq_poisson_table.csv',
+                           sep = ""))
+  }
+  
+  if (exists("patterns")) {
+    rm(patterns)
+  }
+}
+
+
+###############################################################################
 cat("Runtime:", round(as.numeric(difftime(Sys.time(), Ti, units = "mins")), 
                       digits=4), "min\n")
-cat("Done!")
+cat("Done!\n")
 sink()

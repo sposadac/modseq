@@ -14,7 +14,7 @@ PlotVariantFrequencies <- function(data, x.var, y.var, z.var, facets,
   
   pl.modDist <- pl.modDist +  geom_bar(stat = "identity", width = 0.7) + 
     facet_wrap(facets) + labs(x = "Modular variants", y = "Frequencies [%]") +
-    ggtitle("ModSeq | Distribution of modular variants - last search round") + 
+    ggtitle("ModSeq | Distribution of modular variants") + 
     theme_bw() + 
     theme(axis.title = element_text(size = 14), axis.text.x = element_blank(),
           axis.ticks.x = element_blank(), axis.text.y = element_text(size = 14),
