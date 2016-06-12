@@ -1,6 +1,28 @@
 ModuleCombinationsGen <- function(modules.filename, pattern = character(0), 
-                                  in.modDir = NULL, modseq.dir = "", 
+                                  in.modDir = NULL, modseq.dir = NULL, 
                                   num.cores = numeric(0)) {
+  
+  ## Function arguments
+  # modules.filename  Character
+  # patterns          (optional) Data frame containing the sequences of the 
+  #                   various variants per module. Columns correspond to 
+  #                   different modules and rows correspond to variants 
+  #                   identifiers. 
+  # in.modDir         (optional) Expected when patterns are not provided
+  # modseq.dir        (optional) Expected when patterns are not provided
+  # num.cores         (optional) number of cores available for performing 
+  #                   parallel tasks.
+  
+  ## Whenever input or output directories are not specified, assumed to be 
+  #  the current working directory
+  if (is.null(modseq.dir)) {
+    modseq.dir <- getwd()
+    warning("Object \'modseq.dir\' not found, set to: \"", modseq.dir, "\".")
+  } 
+  if (is.null(in.modDir)) {
+    in.modDir <- getwd()
+    warning("Object \'in.modDir\' not found, set to: \"", in.modDir, "\".")
+  }
   
   if (length(num.cores) == 0) {
     num.cores <- detectCores()

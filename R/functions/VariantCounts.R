@@ -26,9 +26,10 @@ VariantCounts <- function(patterns, num.reads, counts, labels, file.prefix,
     warning("Object \'modseq.dir\' not found, set to: \"", modseq.dir, "\".")
   } 
   
-  if (!exists("PlotVariantCounts", mode = "function")) {
-    source(file.path(modseq.dir, "R/functions/PlotVariantCounts.R"))
+  if (!exists("PlotVariantCountsPerRound", mode = "function")) {
+    source(file.path(modseq.dir, "R/functions/PlotVariantCountsPerRound.R"))
   }
+  source(file.path(modseq.dir, "R/functions/GetVariantsNames.R"))
   
   if (length(num.cores) == 0) {
     num.cores <- detectCores()
@@ -36,10 +37,10 @@ VariantCounts <- function(patterns, num.reads, counts, labels, file.prefix,
   
   if (!is.data.frame(patterns)) {
     source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
-    if (file.exists(patterns)) {
+    if (is.character(patterns)) {
       patterns <- LoadModuleTable(in.modulesDir = patterns) 
     } else {
-      stop("File \"", patterns, "\" not found. \n")
+      stop("Invalid data type for \'patterns\', \"", class(patterns), "\".\n")
     }
   }
   mod.tot <- ncol(patterns)  
@@ -60,9 +61,9 @@ VariantCounts <- function(patterns, num.reads, counts, labels, file.prefix,
   )
   var.counts[1, ] <- c(0, NA, num.reads)
   var.counts[2:(sum(mod.number) + 1), 1] <- rep(seq(mod.tot), mod.number)
-  var.counts[2:(sum(mod.number) + 1), 2] <- unlist(
-    mclapply(seq_len(mod.tot), function(x) rownames(na.omit(patterns[x])), 
-             mc.cores = num.cores))
+  var.counts[2:(sum(mod.number) + 1), 2] <- 
+    GetVariantsNames(patterns = patterns, modules.tot = mod.tot, 
+                     modseq.dir = modseq.dir, num.cores = num.cores)
   
   # Reading number of hits per modular variants from csv files
   for (i in seq_len(mod.tot)) {
@@ -103,9 +104,11 @@ VariantCounts <- function(patterns, num.reads, counts, labels, file.prefix,
                    sep = ""))
   cat("Printing modular-variant counts plot as: \"", out.file, "\".\n", 
       sep = "")
-  PlotVariantCounts(data=var.counts, x.var="module", y.var="freq", z.var="variant",
-                    counts=counts, labels=labels, modules.tot=mod.tot, 
-                    modules.num=mod.number, out.file=out.file)
+  PlotVariantCountsPerRound(
+    data=var.counts, x.var="module", y.var="freq", z.var="variant", 
+    counts=counts, labels=labels, modules.tot=mod.tot, modules.num=mod.number,
+    out.file=out.file
+    )
     
   # Writing csv file containing number of hits per modular variants per search round
   var.counts$module <- c("0", rep(names(patterns), mod.number))

@@ -29,9 +29,8 @@ Run3_bwa <- function(reads.file, in.modDir, mod.filename, bwa.path, bwa.cVal,
       if (!existsFunction("LoadModuleTable")) {
         source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
       }
-      patterns <- 
-        LoadModuleTable(in.modulesDir = in.modDir, 
-                        modules.filename = mod.filename) 
+      patterns <- LoadModuleTable(in.modulesDir = in.modDir, 
+                                  modules.filename = mod.filename) 
     }
     
     ModuleCombinationsGen(modules.filename = mod.filename, pattern = patterns, 
@@ -51,7 +50,7 @@ Run3_bwa <- function(reads.file, in.modDir, mod.filename, bwa.path, bwa.cVal,
   out.file <- file.path(in.modDir, 
                         paste(mod.filename, "_modComb.fasta.bwt", sep = ""))
   if (!file.exists(out.file)) {
-    run.index <- paste(bwa, "index", mod.file)
+    run.index <- paste(bwa, "index", mod.file, "2>", log.file)
     
     cat("Building index reference sequences ... \n")
     system(run.index)

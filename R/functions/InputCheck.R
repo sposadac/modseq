@@ -166,6 +166,7 @@ if (!exists("out.filename")) {
   out.filename <- "out"
 }
 
+## used in run 1 and run 2 only
 if (!exists("out.ssplot")) {
   warning("Object \'out.ssplot\' not found, set to default value: \"",
           "FALSE\".")
@@ -214,33 +215,34 @@ if (run[1] == 1) {
               "\".")
     }
   }
-  
-  if (!exists("qtrim.3end")) {
-    warning("Object \'qtrim.3end\' not found, set to default value: 1.")
-    qtrim.3end <- as.integer(1)
-  } else {
-    aux <- as.integer(qtrim.3end)
-    if (!is.numeric(qtrim.3end)) {
-      if (!is.na(qtrim.3end)) {
-        warning("Invalid data type for \'qtrim.3end\', \"", class(qtrim.3end), 
-                "\".\nObject \'qtrim.end\' is set to ", aux,".")
-      } else {
-        warning("Invalid data type for \'qtrim.3end\', \"", class(qtrim.3end), 
-                "\".\nObject \'qtrim.end\' is set to 1.")
-        qtrim.3end <- as.integer(1)
-      }
-    } else if (aux != qtrim.3end) {
-      warning("Invalid value for \'qtrim.3end\', ", qtrim.3end, ".\nObject ", 
-              "\'qtrim.end\' is set to ", aux,".")
-    }
-    rm(aux)
-    qtrim.3end <- as.integer(qtrim.3end)
-    if (qtrim.3end != 0 && qtrim.3end != 1) {
-      warning("Invalid value for \'qtrim.3end\', ", qtrim.3end, ".\nObject ", 
-              "\'qtrim.end\' should be either 0 or 1.\nObject \'qtrim.end\' ",
-              "is set to 1.")
+}
+
+# qtrim.3end and qtrim.flag needed for NameGen.R
+if (!exists("qtrim.3end")) {
+  warning("Object \'qtrim.3end\' not found, set to default value: 1.")
+  qtrim.3end <- as.integer(1)
+} else {
+  aux <- as.integer(qtrim.3end)
+  if (!is.numeric(qtrim.3end)) {
+    if (!is.na(qtrim.3end)) {
+      warning("Invalid data type for \'qtrim.3end\', \"", class(qtrim.3end), 
+              "\".\nObject \'qtrim.end\' is set to ", aux,".")
+    } else {
+      warning("Invalid data type for \'qtrim.3end\', \"", class(qtrim.3end), 
+              "\".\nObject \'qtrim.end\' is set to 1.")
       qtrim.3end <- as.integer(1)
     }
+  } else if (aux != qtrim.3end) {
+    warning("Invalid value for \'qtrim.3end\', ", qtrim.3end, ".\nObject ", 
+            "\'qtrim.end\' is set to ", aux,".")
+  }
+  rm(aux)
+  qtrim.3end <- as.integer(qtrim.3end)
+  if (qtrim.3end != 0 && qtrim.3end != 1) {
+    warning("Invalid value for \'qtrim.3end\', ", qtrim.3end, ".\nObject ", 
+            "\'qtrim.end\' should be either 0 or 1.\nObject \'qtrim.end\' ",
+            "is set to 1.")
+    qtrim.3end <- as.integer(1)
   }
 }
 
@@ -375,7 +377,7 @@ if (run[3] == 1 || run[4] == 1 || run[5] == 1) {
     
     if (!exists("gls.ambiguity")) {
       warning("Object \'gls.ambiguity\' not found, set to default option: \"", 
-              "bwa\".")
+              "TRUE\".")
       gls.ambiguity <- TRUE
     } else if (!is.logical(gls.ambiguity)) {
       aux <- as.logical(gls.ambiguity)

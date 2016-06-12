@@ -1,11 +1,18 @@
 Author: Susana Posada Cespedes
--> User option to indicate if module-table contains module names and variant names
--> Add R and functions subfolders to the search path (when modseq_main.R is run)
+-> User option to indicate if module table contains module names and variant names
+-> Add R and functions subfolders to the search path (when modseq_main.R is run), or add functions to an R package
 -> Use fastqsampler
 -> fastq file after paired-end, read mapping and filtering
 -> Simulated data: use read simulators, such as GemSim 
 -> Consider using beta-binomial test of strand bias to account for systematic sequencing errors
 
+Run3_gls
+-> Verbose level fo run3
+-> Map.mode using pairwise alignment
+-> mismatch allowance per module (at the moment perfect match or max. allowance per search round)
+
+Run4_bwa
+-> Exclude duplicates in the distribution (flags 1024, 1040)?
 
 -> Susana: Docker (option for running modseq in a platform compatible way)
 RStudio server: To share files and folders between the docker image and host OS one can use the -v option. This acts much like running RStudio in the working directory.

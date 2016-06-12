@@ -56,13 +56,13 @@ if (run[1] == 1 || (run[2] == 1 && qtrim.flag == 0)) {
     
     readF1 <- readFastq(dirPath = in.seqDir, pattern = forward.filename)
     readF2 <- readFastq(dirPath = in.seqDir, pattern = reverse.filename)
-    len.rawData <- length(readF1)
+    num.reads <- length(readF1)
     # checks
-    if (length(readF2) != len.rawData) {
+    if (length(readF2) != num.reads) {
       stop("Number of reads in input files does not match: \n Forward set: ",
-           len.rawData, " reads, \n Reverse set: ", length(readF2), " reads.\n")
+           num.reads, " reads, \n Reverse set: ", length(readF2), " reads.\n")
     }
-    cat("Number of reads: ", len.rawData, " x 2 (mode: PE).\n", sep = "")
+    cat("Number of reads: ", num.reads, " x 2 (mode: PE).\n", sep = "")
     PlotQualityDistribution(readF1, forward.filename, out.dir)
     PlotQualityDistribution(readF2, reverse.filename, out.dir)
     PlotReadLengthDistribution(readF1, forward.filename, out.dir)
@@ -71,8 +71,8 @@ if (run[1] == 1 || (run[2] == 1 && qtrim.flag == 0)) {
   } else if (seq.mode == "SE") {
     
     readF1 <- readFastq(dirPath = in.seqDir, pattern = in.filename)
-    len.rawData <- length(readF1)
-    cat("Number of reads: ", len.rawData, ".\n", sep = "")
+    num.reads <- length(readF1)
+    cat("Number of reads: ", num.reads, ".\n", sep = "")
     PlotQualityDistribution(readF1, in.filename, out.dir)
     PlotReadLengthDistribution(readF1, in.filename, out.dir)
     
@@ -118,9 +118,8 @@ if (run[1] == 1) {
   qtrim.flag <- as.integer(1) 
   cat("Object \'qtrim.flag\' is set to ", qtrim.flag,".\n", sep = "")
   
-  keep <- append(keep, c("len.rawData"))
   if (run[2] == 1) {
-    keep <- append(keep, c("readF1.nQtrim", "IlluminaStat"))
+    keep <- append(keep, c("num.reads", "readF1.nQtrim", "IlluminaStat"))
     if (seq.mode == "PE") {
       keep <- append(keep, c("readF2.nQtrim"))
     }
@@ -148,15 +147,19 @@ if (run[2] == 1) {
     memTrace <- c(memTrace, MemTrace())
   }
   
+  if (!exists("num.reads")) {
+    num.reads <- NULL
+  }
+  
   ## PE read assembly
   source(file.path(modseq.dir, "R/functions/Run2_peAssembly.R"))
   if (qtrim.flag == 0) {
     
-    Run2_peAssembly(
+    num.reads <- Run2_peAssembly(
       readF1 = readF1, readF2 = readF2, qtrim.flag = qtrim.flag, 
       forward.file = forward.filename, reverse.file = reverse.filename, 
       out.ssplot = out.ssplot, out.filename.run2 = out.filename.run2,
-      len.rawData = len.rawData, in.seqDir = in.seqDir,  wdir = wdir,
+      len.rawData = num.reads, in.seqDir = in.seqDir,  wdir = wdir,
       modseq.dir = modseq.dir, pandaseq.path = pandaseq.path, out.dir = out.dir
       )
     
@@ -187,15 +190,12 @@ if (run[2] == 1) {
     if (!exists("readF2.nQtrim")) {
       readF2.nQtrim <- readFastq(in.tr2) 
     }
-    if (!exists("len.rawData")) {
-      len.rawData <- NULL
-    }
     
-    Run2_peAssembly(
+    num.reads <- Run2_peAssembly(
       readF1 = readF1.nQtrim, readF2 = readF2.nQtrim, qtrim.flag = qtrim.flag,
       forward.file = in.tr1, reverse.file = in.tr2, out.ssplot = out.ssplot, 
       out.filename.run2 = out.filename.run2, in.filename.run1 = out.filename.run1,
-      len.rawData = len.rawData, in.seqDir = in.seqDir, wdir = wdir, 
+      len.rawData = num.reads, in.seqDir = in.seqDir, wdir = wdir, 
       modseq.dir = modseq.dir, pandaseq.path = pandaseq.path, out.dir = out.dir
       )
     
@@ -207,6 +207,10 @@ if (run[2] == 1) {
   
   if (mem.trace) {
     memTrace <- c(memTrace, MemTrace())
+  }
+  
+  if (run[3] == 1) {
+    keep <- append(keep, "num.reads")
   }
   
   rm(list=ls()[!(ls() %in% keep)])
@@ -234,8 +238,8 @@ if (run[3] == 1) {
   patterns <- 
     LoadModuleTable(in.modulesDir = in.modDir, modules.filename = mod.filename)
   
-  source((file.path(modseq.dir, "R/functions/GetInputFile.R")))
-  reads.file <- GetInputFile(wdir)
+  source((file.path(modseq.dir, "R/functions/GetReadsFile.R")))
+  reads.file <- GetReadsFile(wdir)
   
   if (map.mode == "gls") {
     
@@ -248,11 +252,11 @@ if (run[3] == 1) {
       stop("File \"", reads.file, "\" not found.\n")
       
     }
-    reads.subj.len <- length(reads.subj)
+    num.reads <- length(reads.subj)
     
     source(file.path(modseq.dir, "R/functions/Run3_gls.R"))
     retList <- Run3_gls(
-      patterns=patterns, reads=reads.subj, num.reads=reads.subj.len, in.modDir, 
+      patterns=patterns, reads=reads.subj, num.reads=num.reads, in.modDir, 
       mod.filename, res.listName, res.counts.filename,  
       gls.ambiguity = gls.ambiguity, gls.direction = gls.direction, 
       gls.mma = gls.mma, mem.trace = mem.trace, memTrace = memTrace, 
@@ -262,14 +266,15 @@ if (run[3] == 1) {
     if (length(retList) > 1) {
       mod.comb <- retList[[2]]
       res.list.lengths <- retList[[3]]
-      res.list.name <- retList[[4]]
+      res.list.ids <- retList[[4]]
       if (run[4] == 1) {
-        keep <- append(keep, c("mod.comb", "res.list.lengths", "res.list.name")) 
+        keep <- append(keep, c("mod.comb", "res.list.lengths", "res.list.ids", 
+                               "GetVariantsNames")) 
       }
     } 
-    
+  
     if (run[4] == 1) {
-      keep <- append(keep, c("reads.subj", "res.list")) ## **TODO** read.subj outside gls?, and patterns?
+      keep <- append(keep, "res.list") 
     }
     
   } else if (map.mode == "bwa") {
@@ -279,67 +284,166 @@ if (run[3] == 1) {
       stop ("File \"", reads.file, "\" not found.\n")
     }
     
+    source(file.path(modseq.dir, "R/functions/Run3_bwa.R"))
+    sam.file <- 
+      Run3_bwa(reads.file = reads.file, in.modDir = in.modDir, 
+               mod.filename = mod.filename, bwa.path = bwa.path, 
+               bwa.cVal = bwa.cVal, bwa.dupl = bwa.dupl, gatk.path = gatk.path, 
+               picard.path = picard.path, samtools.path = samtools.path, 
+               out.filename.run2 = out.filename.run2,  
+               out.filename.run3 = out.filename.run3, 
+               patterns = patterns, modseq.dir = modseq.dir, out.dir = out.dir,
+               num.cores = num.cores)
+    
     if (run[4] == 1) {
-      if (bwa.dupl) {
-        
-        res.sam.realn <- 
-          scan(file = sam.file, 
-               what = list(character(), integer(), character(), integer(), 
-                           integer(), character(), character(), integer(), 
-                           integer(), character(), character(), character(),
-                           character(), character(), character(), character(),
-                           character()), 
-               skip = 0, flush = TRUE, fill = TRUE, quote = "")
-        names(res.sam.realn) <- c("readID", "flag", "refID", "refPOS", "mapQ", 
-                                  "CIGAR", "", "", "", "readSeq", "readQuality",
-                                  "mismatchPOS", "", "", "editDistance", "", "")
-        
-      } else {
-        
-        res.sam.realn <- 
-          scan(file = sam.file, 
-               what = list(character(), integer(), character(), integer(),
-                           integer(), character(), character(), integer(),
-                           integer(), character(), character(), character(),
-                           character(), character(), character(), character()),
-               skip = 0, flush = TRUE, fill = TRUE, quote = "") 
-        names(res.sam.realn) <- c("readID", "flag", "refID", "refPOS", "mapQ", 
-                                  "CIGAR", "", "", "", "readSeq", "readQuality",
-                                  "mismatchPOS", "", "editDistance", "", "")
-        
-      }
+      
+      source(file.path(modseq.dir, "R/functions/LoadAlignmentFile.R"))
+      res.sam.realn <- LoadAlignmentFile(sam.file = sam.file, bwa.dupl = bwa.dupl)
       keep <- append(keep, c("res.sam.realn"))
       
     } else {
       
       res.sam.realn <- 
-        scan(file = sam.file,
-             what = list(character(), integer()), 
-             skip = 0, flush = TRUE, fill = TRUE, quote = "") 
+        scan(file = sam.file, what = list(character(), integer()), skip = 0,
+             flush = TRUE, fill = TRUE, quote = "") 
       names(res.sam.realn) <- c("readID", "flag")
+      
     }
     
+    if (!exists("num.reads")) {
+      reads.subj <- readFastq(reads.file)
+      num.reads <- length(reads.subj)
+    }
+    
+    ## Alignment stats.
+    cat("Number of unmapped reads: ", sum(res.sam.realn[["flag"]] == 4), ".\n",
+        sep ="")
+    cat("Number of secondary alignments: ", 
+        sum(res.sam.realn[["flag"]] == 256 | res.sam.realn[["flag"]] == 272), 
+        ".\n", sep ="")
+    
+    ## Indentifying PCR or optical duplicates
+    #  (1024, 1040 - forward strand and reverse strand, respec.)
     reads.dupl <- 
       sum(res.sam.realn[["flag"]] == 1024 | res.sam.realn[["flag"]] == 1040)
+    ## Mapped reads (ignoring secondary alignments, flags 256 and 272)
+    #  (0 - mapped in forward strand, 16 - mapped in reverse strand)
     reads.map <- 
       sum(res.sam.realn[["flag"]] == 0 | res.sam.realn[["flag"]] == 16) + 
       reads.dupl
-    cat("Found ", reads.map, " module-combinations in ", reads.subj.len, 
-        " reads (", round(reads.map * 100 / reads.subj.len, digits = 2), 
+    cat("Found ", reads.map, " module combinations in ", num.reads, 
+        " reads (", round(reads.map * 100 / num.reads, digits = 2), 
         "%). \n", sep = "")
-    cat("Found", reads.dupl, " marked reads as duplicates (", 
-        round(reads.dupl * 100 / reads.subj.len, digits = 2), "%). \n", 
+    cat("Found ", reads.dupl, " marked reads as duplicates (", 
+        round(reads.dupl * 100 / num.reads, digits = 2), "%). \n", 
         sep = "") 
   }
   
   if (run[4] == 1 || run[5] == 1) {
-    keep <- append(keep, c("patterns", "num.cores"))
+    keep <- append(keep, c("num.reads", "patterns", "LoadModuleTable"))
+    
+    if (existsFunction("ModuleCombinationsGen")){
+      keep <- append(keep, "ModuleCombinationsGen")
+    }
+    
   }
   
   if (mem.trace) {
     memTrace <- c(memTrace, MemTrace())
   }
   rm(list=ls()[!(ls() %in% keep)]) 
+}
+
+###############################################################################
+## 4: LIBRARY COMPOSITION
+###############################################################################
+if (run[4] == 1) {
+  cat("========================================================================\n")
+  cat("Library composition. \n")
+  cat("========================================================================\n")
+  
+  if (!exists("keep")) {
+    keep <- ls()
+  }
+  
+  num.cores <- detectCores()
+  
+  if (!exists("patterns")) {
+    patterns <- file.path(in.modDir, paste(mod.filename, ".csv", sep = ""))
+  }
+  
+  ## Generating module combinations and loading fasta file 
+  if (!exists("mod.comb")) {    
+    mod.file <- 
+      file.path(in.modDir, paste(mod.filename, "_modComb.fasta", sep = ""))
+    
+    if (!file.exists(mod.file)) {
+      
+      if (!existsFunction("ModuleCombinationsGen")) {
+        source(file.path(modseq.dir, "R/functions/ModuleCombinationsGen.R"))
+      }
+      
+      ModuleCombinationsGen(modules.filename = mod.filename, pattern = patterns, 
+                            in.modDir = in.modDir, modseq.dir = modseq.dir, 
+                            num.cores = num.cores)
+    }
+    
+    cat("Reading reference sequences ... \n")
+    mod.comb <- readDNAStringSet(mod.file)
+    
+  }
+  
+  if (map.mode == "gls") {
+    
+    if (!exists("res.list")) {
+      res.list <- NULL
+    }   
+    if (!exists("res.list.lengths")) {
+      res.list.lengths <- NULL
+    }
+    if (!exists("res.list.ids")) {
+      res.list.ids <- NULL
+    }
+    source(file.path(modseq.dir, "R/functions/Run4_gls.R"))
+    Run4_gls(patterns = patterns, res.listName = res.listName, 
+             res.list = res.list, res.list.ids = res.list.ids, 
+             res.list.lengths = res.list.lengths, mod.comb = mod.comb,   
+             out.filename = out.filename.run3, modseq.dir = modseq.dir, 
+             out.dir = out.dir, num.cores = num.cores)
+
+  } else if (map.mode == "bwa") { 
+    
+    if (!exists("res.sam.realn")) {
+      res.sam.realn <- 
+        file.path(out.dir, paste(out.filename.run3, "_realigned.sam", sep = ""))
+    }
+    
+    out.filename = out.filename.run3
+    
+    if (run[5] == 1) {
+      keep <- append(keep, c("res.sam.filt", "ind.edit", "ind.exactMatch", 
+                             "editDistance", "patterns", "patterns.list", 
+                             "mod.comb", "aux.modDist"))
+    }
+  }
+  
+  
+  if (mem.trace) {
+    memTrace <- c(memTrace, MemTrace())
+  }
+  
+  if (run[5] == 1) {
+    keep <- append(keep, c("num.cores"))
+  }
+  rm(list=ls()[!(ls() %in% keep)]) 
+  
+  if (exists("reads.subj")) {
+    rm(reads.subj)
+  }
+  
+  if (exists("res.list")) {
+    rm(res.list)
+  }
 }
 
 ###############################################################################

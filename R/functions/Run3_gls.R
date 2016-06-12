@@ -164,10 +164,10 @@
                 gls.direction = gls.direction, modseq.dir = modseq.dir, 
                 num.cores = num.cores)
 
-#   if (sum(gls.mma > 0) > 0) {
-#     cat("Maximum mismatch allowance for module", which(gls.mma > 0), "was", 
-#         gls.mma[which(gls.mma > 0)], ".\n")
-#   }
+  if (sum(gls.mma > 0) > 0) {
+    cat("Maximum mismatch allowance for module", which(gls.mma > 0), "was", 
+        gls.mma[which(gls.mma > 0)], ".\n")
+  }
   
   ### Plot of memory consumption
   if (mem.trace) {
@@ -189,9 +189,9 @@
                             num.cores = num.cores)
     mod.comb <- retList[[1]]
     res.list.lengths <- retList[[2]]
-    res.list.name <- retList[[3]]
+    res.list.names <- retList[[3]]
     
-    return(list(res.list, mod.comb, res.list.lengths, res.list.name))
+    return(list(res.list, mod.comb, res.list.lengths, res.list.names))
     
   } else {
     

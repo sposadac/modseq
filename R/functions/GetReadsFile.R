@@ -1,5 +1,7 @@
 GetReadsFile <- function(wdir) {
   
+  ## Works on global variables as some of them have been removed depending on 
+  #  the sequencing mode. 
   if (paired.flag == 1) {  
     
     ## Paired reads 

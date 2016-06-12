@@ -177,4 +177,6 @@ Run2_peAssembly <- function(readF1, readF2, qtrim.flag, forward.file,
     cat("Number of Paired-end-reads: ", len.peData, " of ", len.rawData, " (",
         round(len.peData * 100 / len.rawData, digit = 2), "%).\n", sep = "")
   }
+  
+  return(len.peData)
 }

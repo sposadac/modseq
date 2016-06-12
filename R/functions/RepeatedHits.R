@@ -29,6 +29,7 @@ RepeatedHits <- function(res.list, data = NULL, patterns = NULL, num.reads,
   } 
   
   source(file.path(modseq.dir, "R/functions/PlotRepeatedHits.R"))
+  source(file.path(modseq.dir, "R/functions/ParseInfoResultsList.R"))
   
   if (length(num.cores) == 0) {
     num.cores <- detectCores()
@@ -63,33 +64,15 @@ RepeatedHits <- function(res.list, data = NULL, patterns = NULL, num.reads,
   mod.comb.len <- length(mod.comb)
   
   ## Number of hits per module combination
-  res.list.lengths <- 
-    unlist(mclapply(res.list, length, mc.cores = num.cores), 
-           use.names = FALSE)
-  
-  ## Getting the IDs of the module combinations. 
-  # An IDs is formed as the concatenation of IDs of modular variants
-  if (sum(names(res.list) == mod.comb) != mod.comb.len) {
-    
-    ## Only needed if the order is not preserved
-    mod.comb.seq2names <- names(mod.comb)
-    names(mod.comb.seq2names) <- mod.comb
-    res.list.name <- 
-      unlist(mcmapply(function (x,n) rep(x,n), 
-                      x = mod.comb.seq2names[names(res.list)], 
-                      n = res.list.lengths, USE.NAMES = FALSE,
-                      mc.cores = num.cores), use.names = FALSE)
-    
-  } else {
-    res.list.name <- 
-      unlist(mcmapply(function (x,n) rep(x,n), x = names(mod.comb), 
-                      n = res.list.lengths, USE.NAMES = FALSE,
-                      mc.cores = num.cores), use.names = FALSE)
-  }
+  retList <- 
+    ParseInfoResultsList(res.list = res.list, mod.comb = mod.comb, 
+                         mod.comb.len = mod.comb.len, num.cores = num.cores)
+  res.list.lengths <- retList[[1]]
+  res.list.ids <- retList[[2]]
 
   rep.hits <- names(rep.tab[rep.tab > 1])
   aux.rep.hits <- 
-    unlist(mclapply(rep.hits, function(x) res.list.name[which(data == x)],
+    unlist(mclapply(rep.hits, function(x) res.list.ids[which(data == x)],
                     mc.cores= num.cores))
   df.rep.hits <- data.frame("readID" = rep(rep.hits, rep.tab[rep.tab > 1]),
                             "refID"  = aux.rep.hits,
@@ -122,6 +105,6 @@ RepeatedHits <- function(res.list, data = NULL, patterns = NULL, num.reads,
       round(length(rep.tab) / num.reads * 100, digits = 2), "%).\n",
       sep = "")
   
-  return(list(mod.comb, res.list.lengths, res.list.name))
+  return(list(mod.comb, res.list.lengths, res.list.ids))
   
 }
