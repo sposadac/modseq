@@ -58,10 +58,13 @@ mod.filename <- "Modules"  # .csv extension
 # out.dir:      output directory (path to output files, by default ./output).
 # out.filename: prefix for output files (Default: "out").
 # out.ssplot:   boolean variable indicating whether or not the summary- 
-#               statistics plots should be outputted (Default: FALSE).
+#               statistics plots should be output (Default: FALSE).
+# out.varFiles: boolean variable indicating whether or not intermediary files
+#               in the variant discovery module should be output (Default:FALSE)
 out.dir      <- "/Users/susanap/Documents/ModSeq/modseq/output"
 out.filename <- "4_GTGAA_L001"
 out.ssplot   <- TRUE
+out.varFiles <- FALSE
 
 ########################## QUALITY TRIMMING options ###########################
 # qtrim.thold: Phred value at or below which a nucleotide is removed.
@@ -144,15 +147,18 @@ editDist.thold <- 8  # editDistance <= editDist.thold
 
 ## Variants discovery
 # mismatch.filter: Options - TRUE or FALSE. If TRUE (default) mismatches with 
-#                  associated quality score < mismatch.qthold won't be taken into
-#                  account
-# mismathc.qthold: Phred value at or above which a mismatch is taken into account.
-#                  It must be greater than 0. Default value: 15.
+#                  associated quality score < mismatch.qthold won't be taken 
+#                  into account.
+# mismathc.qthold: Phred value at or above which a mismatch is taken into 
+#                  account. It must be greater than 0. Default value: 15.
+# min.coverage:    Mininum number of reads per module combination required for 
+#                  the variant calling (default 20).
+# seq.error:       Expected sequencing error-rate (specific for the seq. 
+#                  platform)
 mismatch.filter <- TRUE  
 mismatch.qthold <- 30  # quality >= mismatch.qthold
-min.coverage    <- 20  # min. coverage (default 20)
-seq.error       <- 0.00304  # expected sequencing error 
-                            # (specific for the seq. platform)
+min.coverage    <- 20  
+seq.error       <- 0.00304  
 
 ## MEMORY CONSUMPTION
 ## Tracing (FALSE=OFF, TRUE=ON), by default FALSE

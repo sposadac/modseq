@@ -22,7 +22,7 @@ NumericVector mod_len_cumsum, CharacterVector names_mod_len_cumsum, int offset) 
     s = 1;
     ++i;
   }
-  for (int i; i < cigar_ops_lengths.size(); i++) {
+  for (int i = 0; i < cigar_ops_lengths.size(); i++) {
     if (cigar_ops[i] == "I" | cigar_ops[i] == "D") {
       int len = cigar_ops_lengths[i];
       double pos;

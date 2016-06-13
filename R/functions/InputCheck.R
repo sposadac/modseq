@@ -184,6 +184,23 @@ if (!exists("out.ssplot")) {
   }
 }
 
+if (!exists("out.varFiles")) {
+  warning("Object \'out.varFiles\' not found, set to default value: \"",
+          "FALSE\".")
+  out.varFiles <- FALSE
+} else if (!is.logical(out.varFiles)) {
+  aux <- as.logical(out.varFiles)
+  if (is.na(aux)) { # e.g. when out.varFiles set to  "" or " "
+    warning("Invalid data type for \'out.varFiles\', \"", class(out.varFiles),
+            "\".\nObject \'out.varFiles\' is set to FALSE.")
+    out.varFiles <- FALSE
+  } else {
+    warning("Invalid data type for \'out.varFiles\', \"", class(out.varFiles), 
+            "\".\nObject \'out.varFiles\' is set to ", aux, ".")
+    out.varFiles <- aux
+  }
+}
+
 ### Quality trimming options
 if (run[1] == 1) {
   if (!exists("qtrim.thold")) {
@@ -751,7 +768,7 @@ if (run[3] == 1 || run[4] == 1 || run[5] == 1) {
         }
       }
       
-      if (!exist("min.coverage")) {
+      if (!exists("min.coverage")) {
         warning("Object \'min.coverage\' not found, set to default value: 20.")
         min.coverage <- as.integer(20)
       } else {
@@ -780,7 +797,7 @@ if (run[3] == 1 || run[4] == 1 || run[5] == 1) {
         }
       }
       
-      if (!exist("seq.error")) {
+      if (!exists("seq.error")) {
         stop("Object \'seq.error\' not found.")
       } else {
         aux <- as.numeric(seq.error)

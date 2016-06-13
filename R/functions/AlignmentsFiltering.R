@@ -115,12 +115,12 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
   ind.exactMatch <- which(editDistance == 0)
   ind.edit <- which(editDistance <= editDist.thold)
   
-  if (exists("num.reads")) {
+  if (is.null(num.reads)) {
     cat("After filtering: found ", length(ind.edit), " module combinations in ",
         num.reads, " reads (", 
-        round(length(ind.edit) * 100 / num.reads, digits = 2), "%)", sep = "")
+        round(length(ind.edit) * 100 / num.reads, digits = 2), "%).\n", sep = "")
   } else {
-    cat("After filtering: found ", length(ind.edit), " module combinations.", 
+    cat("After filtering: found ", length(ind.edit), " module combinations.\n", 
         sep = "")
   }
   

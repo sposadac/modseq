@@ -63,6 +63,9 @@ Run4_bwa <- function(patterns, mod.comb, res.sam.realn, bwa.dupl=TRUE,
   ##### 2: Distribution of module combinations
   mod.dstr <- table(res.sam.filt[["refID"]][ind.edit])
   mod.dstr <- sort(mod.dstr, decreasing = TRUE)
+  cat("Number of module combinations with at least one hit: ", 
+      length(mod.dstr), " of ", mod.comb.len, ". \n", sep = "")
+  
   length(mod.dstr) <- mod.comb.len
   df.mod.dstr <- data.frame("x" = seq_len(mod.comb.len) * 100 / mod.comb.len, 
                             "y" = mod.dstr)

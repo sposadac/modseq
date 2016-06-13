@@ -94,6 +94,9 @@ Run4_gls <- function(patterns, mod.comb, res.listName, res.list=NULL,
   
   ##### 3: Distribution of module combinations
   mod.dstr <- sort(res.list.lengths, decreasing = TRUE)
+  cat("Number of module combinations with at least one hit: ", 
+      length(mod.dstr), " of ", mod.comb.len, ". \n", sep = "")
+  
   df.mod.dstr <- data.frame("x" = seq_len(mod.comb.len) * 100 / mod.comb.len, 
                             "y" = mod.dstr)
   

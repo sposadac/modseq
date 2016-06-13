@@ -17,6 +17,7 @@ CharacterVector mdSubstitutionAlongReferenceSpace(NumericVector md_ops_lengths,
 std::vector<std::string> md_ops, CharacterVector cigar_ops, 
 NumericVector cigar_ops_lengths, std::string read, NumericVector mod_len_cumsum,
 CharacterVector names_mod_len_cumsum, int offset) {
+  
   //CharacterVector ret = CharacterVector::create("0");
   if (md_ops_lengths.size() == 1) {
     return CharacterVector::create();

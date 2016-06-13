@@ -16,6 +16,7 @@ CharacterVector mdSubstitutionAlongReferenceSpaceQualFilter(NumericVector md_ops
 std::vector<std::string> md_ops, CharacterVector cigar_ops, NumericVector cigar_ops_lengths, 
 std::string read, std::string qual, NumericVector mod_len_cumsum, CharacterVector names_mod_len_cumsum, 
 int offset, int qthold = 15) {
+  
   if (md_ops_lengths.size() == 1) {
     return CharacterVector::create();
   } else {
