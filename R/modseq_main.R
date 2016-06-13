@@ -546,23 +546,21 @@ if (run[5] == 1) {
     }
     
     mod.len <- nchar(patterns.list)
+    ind.edit <- which(editDistance <= editDist.thold & editDistance > 0)
     
     ### 1. "Soft Clipping" reads and quality strings 
     cigar.ops <- 
-      explodeCigarOps(res.sam.filt[["CIGAR"]][
-        editDistance <= editDist.thold & editDistance > 0]) 
+      explodeCigarOps(res.sam.filt[["CIGAR"]][ind.edit]) 
     cigar.ops.len <- 
-      explodeCigarOpLengths(res.sam.filt[["CIGAR"]][
-        editDistance <= editDist.thold & editDistance > 0])
+      explodeCigarOpLengths(res.sam.filt[["CIGAR"]][ind.edit])
     
     source(file.path(modseq.dir, "R/functions/SeqTrimming.R"))
     reads.trimmed <- 
       DNAStringSet(mcmapply(
         SeqTrimming, cigarOps = cigar.ops, cigarOpLengths = cigar.ops.len, 
-        seq = res.sam.filt[["readSeq"]][
-          editDistance <= editDist.thold & editDistance > 0], 
-        mc.cores = num.cores))
+        seq = res.sam.filt[["readSeq"]][ind.edit], mc.cores = num.cores))
   
+    # (verbose level)
     ## Exporting object containing results of the alignment filtering 
     #out.file <- 
     #  file.path(out.dir, 
@@ -574,10 +572,9 @@ if (run[5] == 1) {
     qual.trimmed <- 
       BStringSet(mcmapply(
         SeqTrimming, cigarOps = cigar.ops, cigarOpLengths = cigar.ops.len, 
-        seq = res.sam.filt[["readQuality"]][
-          editDistance <= editDist.thold & editDistance > 0], 
-        mc.cores = num.cores))
+        seq = res.sam.filt[["readQuality"]][ind.edit], mc.cores = num.cores))
     
+    # (verbose level)
     ## Exporting object containing results of the alignment filtering 
     #out.file <- 
     #  file.path(out.dir, 
@@ -587,132 +584,127 @@ if (run[5] == 1) {
     #save(qual.trimmed, file = out.file)
     
     ## **TODO**: MD field is not recomputed for realigned reads, write module
-    # NULL as output for OC (stands for original cigar) - tag
-    md.ops <- 
-      mclapply(strsplit(
-        res.sam.filt[["mismatchPOS"]][
-          editDistance <= editDist.thold & editDistance > 0], split = ":"),
-        function(x) strsplit(x[3], split = "[0-9]+")[[1]], 
-        mc.cores = num.cores)
-    md.ops.len <- 
-      mclapply(strsplit(
-        res.sam.filt[["mismatchPOS"]][
-          editDistance <= editDist.thold & editDistance > 0], split = ":"),
-        function(x) as.numeric(strsplit(x[3], split = "[ACTGN^]+")[[1]]), 
-        mc.cores = num.cores)
-    mod.len.cumsum <- 
-      mclapply(res.sam.filt[["refID"]][
-        editDistance <= editDist.thold & editDistance > 0], 
-        function(x) cumsum(c(1, as.numeric(head(
-          mod.len[strsplit(x, split = ":")[[1]]], n = -1)))), 
-        mc.cores = num.cores)
-    names.mod.len.cumsum <- 
-      mclapply(res.sam.filt[["refID"]][
-        editDistance <= editDist.thold & editDistance > 0],
-        function(x) names(mod.len[strsplit(x, split = ":")[[1]]]), 
+    #  NULL as output for OC (stands for original cigar) - tag
+    md.ops <- mclapply(
+      strsplit(res.sam.filt[["mismatchPOS"]][ind.edit], split = ":"),
+      function(x) strsplit(x[3], split = "[0-9]+")[[1]], mc.cores = num.cores)
+    
+    md.ops.len <-  mclapply(
+      strsplit(res.sam.filt[["mismatchPOS"]][ind.edit], split = ":"),
+      function(x) as.numeric(strsplit(x[3], split = "[ACTGN^]+")[[1]]), 
+      mc.cores = num.cores)
+    
+    mod.len.cumsum <- mclapply(
+      res.sam.filt[["refID"]][ind.edit], 
+      function(x) cumsum(
+        c(1, as.numeric(head(mod.len[strsplit(x, split = ":")[[1]]], n = -1)))), 
         mc.cores = num.cores)
     
-    leftclipped <- as.integer(
-      res.sam.filt[["refPOS"]][editDistance <= editDist.thold & editDistance > 0] - 1)
+    names.mod.len.cumsum <- mclapply(
+      res.sam.filt[["refID"]][ind.edit],
+      function(x) names(mod.len[strsplit(x, split = ":")[[1]]]), 
+      mc.cores = num.cores)
+    
+    leftclipped <- as.integer(res.sam.filt[["refPOS"]][ind.edit] - 1)
     
     library(Rcpp)
     
-    ### Mismatches
-    if (mismatch.filter) {
-      
+    ### 2. Identification of mismatches 
+    if (mismatch.filter) { 
       sourceCpp(
         file.path(modseq.dir, 
                   "src/mdSubstitutionAlongReferenceSpaceQualFilter.cpp"))
       
-      substitution.modPos <- 
-        mcmapply(FUN = mdSubstitutionAlongReferenceSpaceQualFilter, 
-                 md_ops_lengths = md.ops.len, md_ops = md.ops, 
-                 cigar_ops = cigar.ops, cigar_ops_lengths =  cigar.ops.len,
-                 read = as.character(reads.trimmed), 
-                 qual = as.character(qual.trimmed), 
-                 mod_len_cumsum = mod.len.cumsum, 
-                 names_mod_len_cumsum = names.mod.len.cumsum, 
-                 offset = leftclipped, 
-                 qthold = mismatch.qthold, mc.cores = num.cores)
+      substitution.modPos <- mcmapply(
+        FUN = mdSubstitutionAlongReferenceSpaceQualFilter, 
+        md_ops_lengths = md.ops.len, md_ops = md.ops, cigar_ops = cigar.ops, 
+        cigar_ops_lengths =  cigar.ops.len, read = as.character(reads.trimmed), 
+        qual = as.character(qual.trimmed), mod_len_cumsum = mod.len.cumsum, 
+        names_mod_len_cumsum = names.mod.len.cumsum, offset = leftclipped, 
+        qthold = mismatch.qthold, mc.cores = num.cores
+        )
       
     } else {
       
       sourceCpp(
         file.path(modseq.dir, "src/mdSubstitutionAlongReferenceSpace.cpp"))
       
-      substitution.modPos <- 
-        mcmapply(FUN = mdSubstitutionAlongReferenceSpace, 
-                 md_ops_lengths = md.ops.len, md_ops = md.ops, 
-                 cigar_ops = cigar.ops, cigar_ops_lengths =  cigar.ops.len, 
-                 read = as.character(reads.trimmed), 
-                 mod_len_cumsum = mod.len.cumsum, 
-                 names_mod_len_cumsum = names.mod.len.cumsum, 
-                 offset = leftclipped[ind.coverage][ind.mapQ][
-                   editDistance <= editDist.thold & editDistance > 0], 
-                 mc.cores = num.cores)
+      substitution.modPos <- mcmapply(
+        FUN = mdSubstitutionAlongReferenceSpace, md_ops_lengths = md.ops.len, 
+        md_ops = md.ops, cigar_ops = cigar.ops, 
+        cigar_ops_lengths =  cigar.ops.len, read = as.character(reads.trimmed), 
+        mod_len_cumsum = mod.len.cumsum, 
+        names_mod_len_cumsum = names.mod.len.cumsum, offset = leftclipped, 
+        mc.cores = num.cores
+        )
       
-      qualSubstitution.modPos <- 
-        mcmapply(FUN = mdSubstitutionAlongReferenceSpace, 
-                 md_ops_lengths = md.ops.len, md_ops = md.ops, 
-                 cigar_ops = cigar.ops, cigar_ops_lengths =  cigar.ops.len, 
-                 read = as.character(qual.trimmed), 
-                 mod_len_cumsum = mod.len.cumsum, 
-                 names_mod_len_cumsum = names.mod.len.cumsum, 
-                 offset = leftclipped,
-                 mc.cores = num.cores)
+      qualSubstitution.modPos <- mcmapply(
+        FUN = mdSubstitutionAlongReferenceSpace, md_ops_lengths = md.ops.len,
+        md_ops = md.ops, cigar_ops = cigar.ops,
+        cigar_ops_lengths =  cigar.ops.len, read = as.character(qual.trimmed), 
+        mod_len_cumsum = mod.len.cumsum, 
+        names_mod_len_cumsum = names.mod.len.cumsum, offset = leftclipped,
+        mc.cores = num.cores
+        )
       
     }
-    names(substitution.modPos) <- res.sam.filt[["refID"]][
-      editDistance <= editDist.thold & editDistance > 0]
-    # TODO: verbose level
-    # save(substitution.modPos, file = paste(out.dir, out.filename.run3, '_substitutionModPos.rda', sep =""))
+    names(substitution.modPos) <- res.sam.filt[["refID"]][ind.edit]
+    # (verbose level)
+    ## Exporting object containing results of the alignment filtering 
+    #out.file <- 
+    #  file.path(out.dir, 
+    #            paste(out.filename.run3, "_substitutionModPos.rda", sep =""))
+    #cat("Exporting object containing single nucleotide variants: \"", out.file,
+    #    "\".\n", sep = "")
+    #save(substitution.modPos, file = out.file)
     
-    aux.mismatch.modDist <- unlist(
-      mclapply(strsplit(unlist(substitution.modPos), split = ":"), 
-               function(x) x[1],  mc.cores = num.cores)
+    aux.mismatch.modDist <- unlist(mclapply(
+      strsplit(unlist(substitution.modPos, use.names = FALSE), split = ":"), 
+      function(x) x[1],  mc.cores = num.cores)
       )
+    
     mismatch.modDist <- table(
       factor(aux.mismatch.modDist, levels = names(patterns.list))
       )
     
     source(file.path(modseq.dir, "R/functions/PlotMismatchesPerVariant.R"))
+    cat("Plotting distribution of mismatches per position for each modular", 
+        "variant. \n") 
     for (i in seq_along(patterns.list)) {
-      PlotMismatchesPerVariant(substitution.modPos = substitution.modPos, 
-                               ind = c(aux.mismatch.modDist == names(patterns.list)[i]), 
-                               mod.len = mod.len, var = names(patterns.list)[i], 
-                               tot = aux.modDist[names(patterns.list)[i]], 
-                               patterns = patterns.list, 
-                               filename = out.filename.run3, 
-                               subdirectory = '')
+      variant <- names(patterns.list)[i] 
+      PlotMismatchesPerVariant(
+        substitution.modPos = substitution.modPos, 
+        ind = c(aux.mismatch.modDist == variant), mod.len = mod.len, 
+        var = variant, tot = aux.modDist[variant], patterns = patterns.list,
+        filename = out.filename.run3, out.dir = out.dir, num.cores = num.cores
+        )
+      
     }
     
-    df.mismatch <- data.frame("freq" = mismatch.modDist * 100 / 
-                                (aux.modDist * mod.len))
+    ## Distibution of mismatches per variant normalized by their lengths
+    df.mismatch <- data.frame(
+      "freq" = mismatch.modDist * 100 / (aux.modDist * mod.len)
+      )
     
+    source(file.path(modseq.dir, "R/functions/PlotMismatches.R"))
     out.file <- 
       file.path(out.dir, 
                 paste(out.filename.run3, "_mismatchPerVariant_normalizedFreq_graph.pdf",
-                      sep = "")
-    pl.mismatch <- ggplot(df.mismatch, aes(x = freq.Var1, y = freq.Freq))
-    pl.mismatch <- pl.mismatch + 
-      geom_bar(stat = "identity", position = "identity", width = 0.7) +
-      labs(x = "Modular variants", y = "Normalized mismatch frequencies [%]") +
-      ggtitle("ModSeq | Distribution of mismatches per modular variants") + 
-      theme_bw() + 
-      theme(plot.title = element_text(face = "bold", size = 16),
-            text = element_text(size = 14))
-    ggsave(out.file, pl.mismatch, paper = "a4r", width = 12) 
+                      sep = ""))
+    cat("Plotting distribution of mismatches per modular variant: \"", out.file,
+        "\".\n", sep = "")
+    PlotMismatches(data = df.mismatch, x.var = "freq.Var1", y.var = "freq.Freq",
+                   out.file = out.file)
     
     out.file <- 
       file.path(out.dir, 
                 paste(out.filename.run3, "_mismatchPerVariant_normalizedFreq_table.csv",
-                      sep = "")
+                      sep = ""))
+    cat("Exporting: \"", out.file, "\" ... \n", sep = "")
     write.csv(as.data.frame(mismatch.modDist), file = out.file)
     
     ### Mismatches per module combination
-    mod.dstr <- sort(table(
-      res.sam.filt[["refID"]][editDistance <= editDist.thold & editDistance > 0]),
-      decreasing = TRUE)
+    mod.dstr <- sort(table(res.sam.filt[["refID"]][ind.edit]), decreasing = TRUE)
     
     ### Poisson distribution
     source(file.path(modseq.dir, "R/functions/PoissonSNVCall.R"))

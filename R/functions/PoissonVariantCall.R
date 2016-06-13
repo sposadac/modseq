@@ -1,4 +1,4 @@
-PoissonSNVCall <- function(mod.comb, name, variant, error.rate) {
+PoissonVariantCall <- function(mod.comb, name, variant, error.rate) {
   
   n <- seq(0, mod.comb)
   lambda <-  error.rate * mod.comb

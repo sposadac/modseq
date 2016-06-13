@@ -3,7 +3,7 @@ library(scales)
 PlotRepeatedHits <- function(data, out.file) {
   
   ## Function arguments
-  # data      Data frame containing how many time each mapped read has been 
+  # data      Table containing how many time each mapped read has been 
   #           assigned to different module combinations.
   # out.file  path and file name to output the plot
   
