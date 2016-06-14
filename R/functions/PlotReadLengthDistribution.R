@@ -1,4 +1,4 @@
-PlotReadLengthDistribution <- function(reads, out.filename, out.dir) {
+PlotReadLengthDistribution <- function(reads, out.filename, out.dir, title=NULL) {
   
   # Average quality per read
   out.file <- 
@@ -13,8 +13,8 @@ PlotReadLengthDistribution <- function(reads, out.filename, out.dir) {
   pl.readLen <- pl.readLen + 
     geom_histogram(aes(y=..density..), binwidth=1, colour="black", 
                    fill="gray") +
-    labs(x = "Read length", y = "density") +
-    ggtitle("ModSeq | Read-length distribution") +
+    labs(x = "\nRead length", y = "density\n") +
+    ggtitle(paste("ModSeq | Read-length distribution |", title)) +
     theme_bw() + 
     theme(text = element_text(size = 14), 
           plot.title = element_text(face = "bold", size = 16))

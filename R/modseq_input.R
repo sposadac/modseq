@@ -1,4 +1,3 @@
-#TODO compare InputCheck to the one in the analysis folder
 ###############################################################################
 ###                             LOAD PACKAGES                               ###
 ###############################################################################
@@ -21,11 +20,11 @@ run.info <- paste("ModSeq | ", format(Sys.time(),"%Y%m%d"), sep = "")
 ## Which option to run (0=OFF, 1=ON)
 run <- rep(0,5)
 run[1] <- 0  # Pre-processing (quality trimming) and plots.
-run[2] <- 0  # Run paired-end read assembly.
+run[2] <- 1  # Run paired-end read assembly.
 run[3] <- 0  # Run pattern search / Read mapping.
 run[4] <- 0  # Run analysis on the search (library composition, modular variants
              # abundacies)
-run[5] <- 1  # Run variant calling (mismatches and short indels)
+run[5] <- 0  # Run variant calling (mismatches and short indels)
 
 ####################### SEQUENCING MODE AND INPUT FILES #######################
 # seq.mode:         sequencing mode (Options: SE, for single-read sequencing, 
@@ -40,10 +39,10 @@ run[5] <- 1  # Run variant calling (mismatches and short indels)
 #                   file-extension (format: fastq). 
 seq.mode         <- "PE"  # Options: "PE" - paired-end reads, "SE" - single-end 
                           #          reads.
-in.seqDir        <- "/Users/susanap/Documents/ModSeq/modseq/data/raw/" 
+in.seqDir        <- "/Users/susanap/Documents/ModSeq/testdata/20160613_SYNPEPTIDE_Library_I_NGS_I" #"/Users/susanap/Documents/ModSeq/modseq/data/raw/" 
 in.filename      <- ""  # fastq format (for seq.mode = "SE").
-forward.filename <- "4_GTGAA_L001_R1_001"  # fastq format (for seq.mode = "PE").
-reverse.filename <- "4_GTGAA_L001_R2_001"  # fastq format (for seq.mode = "PE").
+forward.filename <- "SPlib1_S1_L001_R1_001" #"4_GTGAA_L001_R1_001"  # fastq format (for seq.mode = "PE").
+reverse.filename <- "SPlib1_S1_L001_R2_001" #"4_GTGAA_L001_R2_001"  # fastq format (for seq.mode = "PE").
 
 # in.modDir:    input directory (path to module-table file, by default 
 #               ./data/modules/).
@@ -62,7 +61,7 @@ mod.filename <- "Modules"  # .csv extension
 # out.varFiles: boolean variable indicating whether or not intermediary files
 #               in the variant discovery module should be output (Default:FALSE)
 out.dir      <- "/Users/susanap/Documents/ModSeq/modseq/output"
-out.filename <- "4_GTGAA_L001"
+out.filename <- "SPlib1_S1_L001" #"4_GTGAA_L001"
 out.ssplot   <- TRUE
 out.varFiles <- FALSE
 
@@ -78,7 +77,7 @@ out.varFiles <- FALSE
 #              value: 1)
 qtrim.thold <- 10
 qtrim.3end  <- 1  # (0 = trimming at both ends, 1 = trimming at 3'-end only)
-qtrim.flag  <- 1  # (0 = untrimmed reads, 1 = trimmed reads)
+qtrim.flag  <- 0  # (0 = untrimmed reads, 1 = trimmed reads)
 
 ###################### PAIRED-END READ ASSEMBLY options #######################
 # paired.flag:    Indicates which set of reads should be taken for the read 

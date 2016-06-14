@@ -1,4 +1,4 @@
-PlotQualityDistribution <- function(reads, out.filename, out.dir) {
+PlotQualityDistribution <- function(reads, out.filename, out.dir, title=NULL) {
   
   # Average quality per read
   out.file <- 
@@ -15,8 +15,9 @@ PlotQualityDistribution <- function(reads, out.filename, out.dir) {
     geom_histogram(aes(y=..density..), binwidth=1, colour="black", 
                    fill="gray") +
     geom_density(alpha=.5, fill="#33CCFF", colour="#33CCFF") + 
-    labs(x = "Average quality score", y = "density") +
-    ggtitle("ModSeq | Distribution of the average quality scores per read") +
+    labs(x = "\nAverage quality score", y = "density\n") +
+    ggtitle(paste("ModSeq | Distribution of the average quality scores per read |",
+            title)) +
     theme_bw() + 
     theme(text = element_text(size = 14), 
           plot.title = element_text(face = "bold", size = 16))

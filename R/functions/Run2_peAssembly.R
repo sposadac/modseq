@@ -6,6 +6,14 @@ Run2_peAssembly <- function(readF1, readF2, qtrim.flag, forward.file,
                             in.seqDir=NULL, wdir=NULL, modseq.dir = NULL,
                             pandaseq.path=NULL, out.dir=NULL) { 
   
+  ## Function arguments
+  # wdir              (optional) Directory to search for input files, by 
+  #                   default current working directory.
+  # out.dir           (optional) Path to output files, by default current 
+  #                   working directory.
+  # modseq.dir        (optional) modseq's head directory, by default current 
+  #                   working directory.
+  
   ## Whenever input or output directories are not specified, assumed to be the 
   #  current working directory
   if (is.null(in.seqDir)) {
@@ -24,6 +32,12 @@ Run2_peAssembly <- function(readF1, readF2, qtrim.flag, forward.file,
   
   if (!existsFunction("IlluminaStat")) {
     source(file.path(modseq.dir, "R/functions/IlluminaStat.R"))
+  }
+  if (!existsFunction("PlotQualityDistribution")) {
+    source(file.path(modseq.dir, "R/functions/PlotQualityDistribution.R"))
+  }
+  if (!existsFunction("PlotReadLengthDistribution")) {
+    source(file.path(modseq.dir, "R/functions/PlotReadLengthDistribution.R"))
   }
   
   ## Creating directories
@@ -103,6 +117,12 @@ Run2_peAssembly <- function(readF1, readF2, qtrim.flag, forward.file,
               pattern = paste(out.filename.run2, "_PANDAseq.fastq", sep = ""))
   ## Temporary work-around (when plugin qualString is not available)
   #writeFasta(PandaseqPaired, file = fasta.file))
+  
+  out.file <- paste(out.filename.run2, "_paired", sep = "")
+  PlotQualityDistribution(PandaseqPaired, out.file, out.dir, 
+                          title = "Paired reads")
+  PlotReadLengthDistribution(PandaseqPaired, out.file, out.dir, 
+                             title = "Paired reads")
   
   if (out.ssplot) {
     cat("Paired-end assembled reads: summary statistics. \n")

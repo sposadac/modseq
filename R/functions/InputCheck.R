@@ -154,7 +154,7 @@ if (!exists("out.dir")) {
 }
 if (!file.exists(out.dir)) {
   dir.create(file.path(out.dir))
-}
+} 
 
 if (!exists("out.filename")) {
   warning("Object \'out.filename\' not found, set to default value: \"",

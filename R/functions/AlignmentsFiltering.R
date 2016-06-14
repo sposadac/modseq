@@ -47,14 +47,13 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
   
   # 3. By edit distance
   ## Correcting entry containign mismatching positions 
-  md.aux <- 
-    unlist(mclapply(strsplit(res.sam.realn[["mismatchPOS"]][ind.sam.realn][
-      ind.coverage][ind.mapQ], split = ":"), function(x) x[[1]], 
-      mc.cores = num.cores))
-  md.aux2 <- 
-    unlist(mclapply(strsplit(res.sam.realn[[13]][ind.sam.realn][
-      ind.coverage][ind.mapQ], split = ":"), function(x) x[[1]], 
-      mc.cores = num.cores))
+  md.aux <- unlist(mclapply(
+    strsplit(res.sam.realn[["mismatchPOS"]][ind.sam.realn][ind.coverage][ind.mapQ],
+             split = ":"), function(x) x[[1]], mc.cores = num.cores)
+    )
+  md.aux2 <- unlist(mclapply(
+    strsplit(res.sam.realn[[13]][ind.sam.realn][ind.coverage][ind.mapQ], split = ":"),
+    function(x) x[[1]], mc.cores = num.cores))
   
   res.sam.realn[["mismatchPOS"]][ind.sam.realn][ind.coverage][ind.mapQ][
     md.aux == "XA"] <- 

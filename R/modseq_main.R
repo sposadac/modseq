@@ -69,18 +69,24 @@ if (run[1] == 1 || (run[2] == 1 && qtrim.flag == 0)) {
            num.reads, " reads, \n Reverse set: ", length(readF2), " reads.\n")
     }
     cat("Number of reads: ", num.reads, " x 2 (mode: PE).\n", sep = "")
-    PlotQualityDistribution(readF1, forward.filename, out.dir)
-    PlotQualityDistribution(readF2, reverse.filename, out.dir)
-    PlotReadLengthDistribution(readF1, forward.filename, out.dir)
-    PlotReadLengthDistribution(readF2, reverse.filename, out.dir)
+    PlotQualityDistribution(readF1, forward.filename, out.dir, 
+                            title = "Raw reads")
+    PlotQualityDistribution(readF2, reverse.filename, out.dir, 
+                            title = "Raw reads")
+    PlotReadLengthDistribution(readF1, forward.filename, out.dir, 
+                               title = "Raw reads")
+    PlotReadLengthDistribution(readF2, reverse.filename, out.dir, 
+                               title = "Raw reads")
     
   } else if (seq.mode == "SE") {
     
     readF1 <- readFastq(dirPath = in.seqDir, pattern = in.filename)
     num.reads <- length(readF1)
     cat("Number of reads: ", num.reads, ".\n", sep = "")
-    PlotQualityDistribution(readF1, in.filename, out.dir)
-    PlotReadLengthDistribution(readF1, in.filename, out.dir)
+    PlotQualityDistribution(readF1, in.filename, out.dir, 
+                            title = "Raw reads")
+    PlotReadLengthDistribution(readF1, in.filename, out.dir, 
+                               title = "Raw reads")
     
   }
 }

@@ -50,7 +50,7 @@ Run3_bwa <- function(reads.file, in.modDir, mod.filename, bwa.path, bwa.cVal,
   out.file <- file.path(in.modDir, 
                         paste(mod.filename, "_modComb.fasta.bwt", sep = ""))
   if (!file.exists(out.file)) {
-    run.index <- paste(bwa, "index", mod.file, "2>", log.file)
+    run.index <- paste(bwa, "index", mod.file)#, "2>", log.file)
     
     cat("Building index reference sequences ... \n")
     system(run.index)

@@ -15,6 +15,9 @@ Run4_bwa
 -> Exclude duplicates in the distribution (flags 1024, 1040)?
 -> Plot of the progression of the alignment filtering
 
+Run5_bwa
+-> For reads that are realigned, the MD is not provided (it is used for the pileup model) 
+
 -> Susana: Docker (option for running modseq in a platform compatible way)
 RStudio server: To share files and folders between the docker image and host OS one can use the -v option. This acts much like running RStudio in the working directory.
 https://github.com/rocker-org/rocker/wiki/Using-the-RStudio-image
