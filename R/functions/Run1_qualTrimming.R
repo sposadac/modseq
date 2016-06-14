@@ -140,9 +140,9 @@ Run1_qualTrimming <- function(readF1, in.filename, seq.mode, qtrim.3end=1,
                file = out.file, compress = FALSE, mode = 'w')
     
     out.file <- paste(out.filename, "_2_nQtrim", sep = "")
-    PlotQualityDistribution(readF2.nQtrim, out.filename, out.dir, 
+    PlotQualityDistribution(readF2.nQtrim, out.file, out.dir, 
                             title = "Trimmed reads")
-    PlotReadLengthDistribution(readF2.nQtrim, out.filename, out.dir, 
+    PlotReadLengthDistribution(readF2.nQtrim, out.file, out.dir, 
                                title = "Trimmed reads")
     
     if (out.ssplot) {
@@ -166,6 +166,7 @@ Run1_qualTrimming <- function(readF1, in.filename, seq.mode, qtrim.3end=1,
         width(readF2.nQtrim), alphabetScore(readF2.nQtrim) / width(readF2.nQtrim))
       
       cat("Trimmed reads: summary statistics - exporting plots ...\n")
+      Ti <- Sys.time()
       IlluminaStat(in.dir = file.path(wdir, 'data/processed/'), 
                    pattern = paste(out.filename, "_subSet_wo0", sep = ""), 
                    SV_plotinputframe = plot.input, SV_qcwd1 = avQScore.readF1.nQtrim,
@@ -218,6 +219,7 @@ Run1_qualTrimming <- function(readF1, in.filename, seq.mode, qtrim.3end=1,
       mean.readF1.nQtrim <- mean(plot.input[[2]], na.rm = TRUE)
       
       cat("Trimmed reads: summary statistics - exporting plots ...\n")
+      Ti <- Sys.time()
       IlluminaStat(in.dir = file.path(wdir, 'data/processed/'),
                    pattern = paste(out.filename, "_subSet_wo0", sep = ""), 
                    SV_plotinputframe = plot.input, SV_qcwd1 = avQScore.readF1,

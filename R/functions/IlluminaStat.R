@@ -269,7 +269,7 @@ IlluminaStat <- function(in.dir, pattern, SV_plotinputframe, SV_qcwd1, SV_qcwd2,
   #par(mfrow = c(1,1));
   #colnames(SV_mostread)[1] <- "TOP 20 Sequences in Illumina-Data";
   #grid.arrange(tableGrob(SV_mostread, gpar.coretext = gpar(fontsize=4)));
-  print("... write to PDF");
-  dev.off();
-  print("... done!");
+  print("... write to PDF")
+  dev.off()
+  print("... done!")
 }
