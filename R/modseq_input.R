@@ -50,8 +50,8 @@ reverse.filename <- "SPlib1_S1_L001_R2_001" #"4_GTGAA_L001_R2_001"  # fastq form
 #               the file extension (format: csv).
 #               Table-header: names of modules, 
 #               first row: name of variants or origin.
-in.modDir    <- "/Users/susanap/Documents/ModSeq/modseq/data/modules/"
-mod.filename <- "Modules"  # .csv extension
+in.modDir    <- "/Users/susanap/Documents/ModSeq/testdata/20160613_SYNPEPTIDE_Library_I_NGS_I" #"/Users/susanap/Documents/ModSeq/modseq/data/modules/"
+mod.filename <- "SP_lib" #"Modules"  # .csv extension
 
 ################################ OUTPUT FILES #################################
 # out.dir:      output directory (path to output files, by default ./output).
