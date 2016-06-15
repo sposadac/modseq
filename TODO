@@ -17,6 +17,11 @@ Run4_bwa
 
 Run5_bwa
 -> For reads that are realigned, the MD is not provided (it is used for the pileup model) 
+-> Rcpp errror:
+qError in dyn.load("/tmp/Rtmp5Qowjy/sourcecpp_5ff840502215/sourceCpp_1.so") :
+  unable to load shared object '/tmp/Rtmp5Qowjy/sourcecpp_5ff840502215/sourceCpp_1.so':
+  /tmp/Rtmp5Qowjy/sourcecpp_5ff840502215/sourceCpp_1.so: failed to map segment from shared object: Operation not permitted
+Calls: source ... sourceCpp -> source -> withVisible -> eval -> eval -> dyn.load
 
 -> Susana: Docker (option for running modseq in a platform compatible way)
 RStudio server: To share files and folders between the docker image and host OS one can use the -v option. This acts much like running RStudio in the working directory.
