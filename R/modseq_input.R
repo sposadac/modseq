@@ -39,10 +39,10 @@ run[5] <- 0  # Run variant calling (mismatches and short indels)
 #                   file-extension (format: fastq). 
 seq.mode         <- "PE"  # Options: "PE" - paired-end reads, "SE" - single-end 
                           #          reads.
-in.seqDir        <- "/Users/susanap/Documents/ModSeq/modseq/data/raw/" #"/Users/susanap/Documents/ModSeq/testdata/20160613_SYNPEPTIDE_Library_I_NGS_I" 
+in.seqDir        <- "/Users/susanap/Documents/ModSeq/testdata/20160613_SYNPEPTIDE_Library_I_NGS_I" #"/Users/susanap/Documents/ModSeq/modseq/data/raw/"
 in.filename      <- ""  # fastq format (for seq.mode = "SE").
-forward.filename <- "4_GTGAA_L001_R1_001" #"SPlib1_S1_L001_R1_001"   # fastq format (for seq.mode = "PE").
-reverse.filename <- "4_GTGAA_L001_R2_001" #"SPlib1_S1_L001_R2_001"   # fastq format (for seq.mode = "PE").
+forward.filename <- "SPlib1_S1_L001_R1_001" #"4_GTGAA_L001_R1_001"  # fastq format (for seq.mode = "PE").
+reverse.filename <- "SPlib1_S1_L001_R2_001" #"4_GTGAA_L001_R2_001"  # fastq format (for seq.mode = "PE").
 
 # in.modDir:    input directory (path to module-table file, by default 
 #               ./data/modules/).
@@ -50,8 +50,8 @@ reverse.filename <- "4_GTGAA_L001_R2_001" #"SPlib1_S1_L001_R2_001"   # fastq for
 #               the file extension (format: csv).
 #               Table-header: names of modules, 
 #               first row: name of variants or origin.
-in.modDir    <- "/Users/susanap/Documents/ModSeq/modseq/data/modules/" #"/Users/susanap/Documents/ModSeq/testdata/20160613_SYNPEPTIDE_Library_I_NGS_I"
-mod.filename <- "Modules"  # "SP_lib" #.csv extension 
+in.modDir    <- "/Users/susanap/Documents/ModSeq/testdata/20160613_SYNPEPTIDE_Library_I_NGS_I" #"/Users/susanap/Documents/ModSeq/modseq/data/modules/" 
+mod.filename <- "SP_lib" #"Modules"  #.csv extension 
 
 ################################ OUTPUT FILES #################################
 # out.dir:      output directory (path to output files, by default ./output).

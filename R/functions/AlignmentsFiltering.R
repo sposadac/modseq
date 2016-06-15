@@ -4,6 +4,10 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
                                 editDist.thold=8, num.reads=NULL, modseq.dir=NULL, 
                                 num.cores=numeric(0)) {
   
+  ## Function arguments
+  #  mod.comb     Variable of type DNAStringSet containing sequences of the module
+  #               combinations. Alternatively path to fasta file.
+  
   ## Whenever modseq path or output directory are not specified, assumed to be 
   #  the current working directory
   if (is.null(modseq.dir)) {
@@ -13,6 +17,17 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
   
   if (length(num.cores) == 0) {
     num.cores <- detectCores()
+  }
+  
+  if (is.character(mod.comb)) {
+    
+    if (file.exits(mod.comb)) {
+      cat("Reading reference sequences ... \n")
+      mod.comb <- readDNAStringSet(mod.comb)
+    } else {
+      stop("File \"", mod.comb, "\" not found.\n")
+    }
+    
   }
   
   ## Loading results from read mapping
@@ -114,7 +129,7 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
   ind.exactMatch <- which(editDistance == 0)
   ind.edit <- which(editDistance <= editDist.thold)
   
-  if (is.null(num.reads)) {
+  if (!is.null(num.reads)) {
     cat("After filtering: found ", length(ind.edit), " module combinations in ",
         num.reads, " reads (", 
         round(length(ind.edit) * 100 / num.reads, digits = 2), "%).\n", sep = "")

@@ -7,8 +7,11 @@ Run5_bwa <- function(mod.comb, patterns, res.sam.filt=NULL, aux.modDist=NULL,
                      modseq.dir=NULL, out.dir=NULL, num.cores=numeric(0)) {
   
   ## Function arguments
-  #  aux.modDist    Table containing the number of hits per modular variant
-  #  res.sam.filt   List containing the results of the alignment filtering
+  # mod.comb      Variable of type DNAStringSet containing sequences of the 
+  #               module.
+  # aux.modDist   Table containing the number of hits per modular variant.
+  # res.sam.filt  List containing the results of the alignment filtering.
+  # 
   
   ## Whenever modseq path or output directory are not specified, assumed to be 
   #  the current working directory
@@ -22,6 +25,17 @@ Run5_bwa <- function(mod.comb, patterns, res.sam.filt=NULL, aux.modDist=NULL,
   
   if (length(num.cores) == 0) {
     num.cores <- detectCores()
+  }
+  
+  if (is.character(mod.comb)) {
+    
+    if (file.exits(mod.comb)) {
+      cat("Reading reference sequences ... \n")
+      mod.comb <- readDNAStringSet(mod.comb)
+    } else {
+      stop("File \"", mod.comb, "\" not found.\n")
+    }
+    
   }
   
   if (!existsFunction("LoadModuleTable")) {

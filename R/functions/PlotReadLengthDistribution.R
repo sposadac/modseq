@@ -8,6 +8,7 @@ PlotReadLengthDistribution <- function(reads, out.filename, out.dir, title=NULL)
   cat("Plotting the read-length distribution as: \"", out.file, "\".\n", sep = "")
   read.len <- width(reads)
   read.len <- as.data.frame("x" = read.len)
+  
   pl.readLen <- ggplot(read.len, aes(x = read.len))
   
   pl.readLen <- pl.readLen + 

@@ -59,11 +59,16 @@ RepeatedHits <- function(res.list, data = NULL, patterns = NULL, num.reads,
   ## Generating module combinations and loading fasta file 
   mod.file <- 
     file.path(in.modDir, paste(mod.filename, "_modComb.fasta", sep = ""))
+  
   if (!file.exists(mod.file)) {
-    source(file.path(modseq.dir, 'R/functions/ModuleCombinationsGen.R'))
+    
+    if (!existsFunction("ModuleCombinationsGen")) {
+      source(file.path(modseq.dir, "R/functions/ModuleCombinationsGen.R"))
+    }
+    
     ModuleCombinationsGen(modules.filename = mod.filename, pattern = patterns, 
-                          in.modDir = in.modDir, modseq.dir = modseq.dir, 
-                          num.cores = num.cores)
+                          out.file = mod.file, in.modDir = in.modDir, 
+                          modseq.dir = modseq.dir, num.cores = num.cores)
   }
   mod.comb <- readDNAStringSet(mod.file)
   mod.comb.len <- length(mod.comb)

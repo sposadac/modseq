@@ -33,6 +33,7 @@ IlluminaStat <- function(in.dir, pattern, SV_plotinputframe, SV_qcwd1, SV_qcwd2,
     
     # Make graphs and print as PDF
     pdf(file.path(out.dir, pdfname), paper = "a4r", width = 12)
+    
     print("... plot counts")
     plot(
       ShortRead:::.plotReadCount(
@@ -43,6 +44,7 @@ IlluminaStat <- function(in.dir, pattern, SV_plotinputframe, SV_qcwd1, SV_qcwd2,
       ShortRead:::.plotNucleotideCount(
         rbind(SV_illuminaqcF1raw, SV_illuminaqcF2raw, SV_illuminaqcF1, 
               SV_illuminaqcF2)))
+    
     print("... plot quality score density")
     SV_qcsubF1raw <- SV_illuminaqcF1raw[["readQualityScore"]];
     SV_qcsubF2raw <- SV_illuminaqcF2raw[["readQualityScore"]];
@@ -59,6 +61,7 @@ IlluminaStat <- function(in.dir, pattern, SV_plotinputframe, SV_qcwd1, SV_qcwd2,
         rbind(SV_qcsubF2raw[SV_qcsubF2raw$type=="read", ],
               SV_qcsubF2[SV_qcsubF2$type=="read", ]))
       )
+    
     print("... plot cycle vs. basecalls and quality")
     SV_qcsubF1raw <- SV_illuminaqcF1raw[["perCycle"]]
     SV_qcsubF2raw <- SV_illuminaqcF2raw[["perCycle"]]
@@ -81,6 +84,7 @@ IlluminaStat <- function(in.dir, pattern, SV_plotinputframe, SV_qcwd1, SV_qcwd2,
     plot(ShortRead:::.plotCycleQuality(
       rbind(SV_qcsubF2raw$quality, SV_qcsubF2$quality))
       )
+    
     print("... plot read length distributions")
     df <- data.frame(x = SV_plotinputframe[, 3], 
                      y = SV_plotinputframe[, 4])
@@ -99,6 +103,7 @@ IlluminaStat <- function(in.dir, pattern, SV_plotinputframe, SV_qcwd1, SV_qcwd2,
     SG_hist <- SG_hist + geom_vline(xintercept=SV_meanread4, color="blue",
                                     linetype="dashed", size=.2)
     plot(SG_hist)
+    
     print("... plot read length vs. quality")
     par(mfrow = c(1,2))
     smoothScatter(

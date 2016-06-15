@@ -1,15 +1,16 @@
-ModuleCombinationsGen <- function(modules.filename, pattern = character(0), 
-                                  in.modDir = NULL, modseq.dir = NULL, 
-                                  num.cores = numeric(0)) {
+ModuleCombinationsGen <- function(modules.filename, pattern=character(0), 
+                                  out.file=NULL, in.modDir=NULL, modseq.dir=NULL, 
+                                  num.cores=numeric(0)) {
   
   ## Function arguments
-  # modules.filename  Character
+  # modules.filename  Character. Name of the file containing table of modules.
   # patterns          (optional) Data frame containing the sequences of the 
   #                   various variants per module. Columns correspond to 
   #                   different modules and rows correspond to variants 
   #                   identifiers. 
-  # in.modDir         (optional) Expected when patterns are not provided
-  # modseq.dir        (optional) Expected when patterns are not provided
+  # in.modDir         (optional) Expected when patterns or out.file are not 
+  #                   provided.
+  # modseq.dir        (optional) Expected when patterns are not provided.
   # num.cores         (optional) number of cores available for performing 
   #                   parallel tasks.
   
@@ -61,8 +62,14 @@ ModuleCombinationsGen <- function(modules.filename, pattern = character(0),
                     mc.cores = num.cores))  
   names(Modules.modComb) <- rownames
   
-  out.file <- file.path(in.modDir, 
-                        paste(modules.filename, '_modComb.fasta', sep = ""))
+  if (is.null(out.file)) {
+    if (is.null(in.modDir)) {
+      in.modDir <- getwd() 
+    }
+    out.file <- file.path(in.modDir, 
+                          paste(modules.filename, "_modComb.fasta", sep = ""))
+  }
+  
   cat("Writing module combinations as fasta file: \"", out.file, "\" ...\n",
       sep = "")
   writeFasta(object = Modules.modComb, file = out.file)
