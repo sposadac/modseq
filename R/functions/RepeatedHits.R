@@ -1,7 +1,8 @@
-# Read can be mapped to multiple module combinations when paired-end reads were
-# almost stitched, rather than merged. This can happen when a very short overlap
-# is found. Then, if you have both copies which differ in few positions, reads 
-# can be mapped to different module combinations.
+# **NOTE**: Read can be mapped to multiple module combinations (even when 
+#           gls.mma = 0) if paired-end reads were almost stitched, rather than
+#           merged. This can happen when a very short overlap is found. Then,   
+#           if you have both copies which differ in few positions, such read  
+#           can be mapped to different module combinations.
 RepeatedHits <- function(res.list, data = NULL, patterns = NULL, num.reads, 
                          in.modDir, mod.filename, res.listName, out.dir, 
                          modseq.dir = NULL, num.cores = numeric(0)) {

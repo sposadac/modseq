@@ -79,7 +79,9 @@ Run2_peAssembly <- function(readF1, readF2, qtrim.flag, forward.file,
   }
   cat("Forward-reads file: \"", f1, "\".\n", sep = "")
   cat("Reverse-reads file: \"", f2, "\".\n", sep = "")
-  
+  ## **NOTE**: unaligned reads corresponds to pairs of reads which could not
+  #            be merged by pandaseq, but passed quality filters. That is, 
+  #            excluding low quality (LOWQ) pairs of reads. 
   fastq.file <- 
     file.path(wdir, "data/paired", 
               paste(out.filename.run2, "_PANDAseq.fastq", sep = ""))
