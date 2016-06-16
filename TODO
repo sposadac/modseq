@@ -6,6 +6,9 @@ Author: Susana Posada Cespedes
 -> Simulated data: use read simulators, such as GemSim 
 -> Consider using beta-binomial test of strand bias to account for systematic sequencing errors
 
+Run2_bwa
+-> Remove hyphen separating pairs of unmerged reads (Cases in which pandaseq failed). If the hyphen is not removed, the sam file is not output properly (CIGAR and read sequence are of different lenth - truncated file)
+
 Run3_gls
 -> Verbose level fo run3
 -> Map.mode using pairwise alignment
