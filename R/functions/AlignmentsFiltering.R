@@ -63,7 +63,7 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
     which(as.numeric(res.sam.realn[["mapQ"]][ind.sam.realn][ind.coverage]) >=
             mapQ.thold)
   
-  checkEmpty(ind.coverage)
+  checkEmpty(ind.mapQ)
   printResults("mapping quality", ind.mapQ, num.reads)
   
   # 3. By edit distance
@@ -134,15 +134,6 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
       split = "NM:i:"), function(x) x[2], mc.cores = num.cores)))
   ind.exactMatch <- which(editDistance == 0)
   ind.edit <- which(editDistance <= editDist.thold)
-  
-  if (!is.null(num.reads)) {
-    cat("After filtering: found ", length(ind.edit), " module combinations in ",
-        num.reads, " reads (", 
-        round(length(ind.edit) * 100 / num.reads, digits = 2), "%).\n", sep = "")
-  } else {
-    cat("After filtering: found ", length(ind.edit), " module combinations.\n", 
-        sep = "")
-  }
   
   checkEmpty(ind.edit)
   printResults("mapping quality", ind.edit, num.reads)
