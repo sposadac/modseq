@@ -1,7 +1,5 @@
 LoadAlignmentFile <- function(sam.file, bwa.dupl=TRUE) {
   
-  paste(out.dir, out.filename.run3, 
-        "_realigned.sam", sep = "")
   if (bwa.dupl) {
     
     res.sam.realn <- 
