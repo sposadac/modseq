@@ -169,8 +169,8 @@ IlluminaStat <- function(in.dir, pattern, SV_plotinputframe, SV_qcwd1, SV_qcwd2,
                      y = SV_plotinputframe[, 2])
     SG_hist <- ggplot(df, aes(x = x))
     SG_hist <- SG_hist + 
-      geom_density(binwidth=1, fill="blue", alpha=.1, size=.3, color="red") + 
-      geom_density(binwidth=1, fill="red", alpha=.1, size=.3, aes(x = y), 
+      geom_histogram(binwidth=1, fill="blue", alpha=.1, size=.3, color="red") + 
+      geom_histogram(binwidth=1, fill="red", alpha=.1, size=.3, aes(x = y), 
                    color="blue") + theme_bw() + 
       scale_x_continuous("Read length") + scale_y_continuous("Counts")
     SG_hist <- SG_hist + geom_vline(xintercept=SV_meanread1, color="blue",
@@ -238,10 +238,10 @@ IlluminaStat <- function(in.dir, pattern, SV_plotinputframe, SV_qcwd1, SV_qcwd2,
                      z = SV_plotinputframe[, 3])
     SG_hist <- ggplot(df, aes(x = x))
     SG_hist <- SG_hist +
-      geom_density(binwidth=1, fill="blue", alpha=.1, size=.3, color="blue") + 
-      geom_density(binwidth=1, fill="darkgrey", alpha=.1, size=.3, aes(x = y), 
+      geom_histogram(binwidth=1, fill="blue", alpha=.1, size=.3, color="blue") + 
+      geom_histogram(binwidth=1, fill="darkgrey", alpha=.1, size=.3, aes(x = y), 
                    color="darkgrey") + 
-      geom_density(binwidth=1, fill="red", alpha=.1, size=.3, aes(x = z), 
+      geom_histogram(binwidth=1, fill="red", alpha=.1, size=.3, aes(x = z), 
                    color="red") + theme_bw() +
        scale_x_continuous("Read length") + scale_y_continuous("Counts")
     SG_hist <- SG_hist + geom_vline(xintercept=SV_meanread1, color="blue",
