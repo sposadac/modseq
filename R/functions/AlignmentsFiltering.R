@@ -55,10 +55,16 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
   ind.coverage <- 
     which(leftclipped <= coverage.left & rightclipped <= coverage.right) 
   
+  checkEmpty(ind.coverage)
+  printResults("coverage", ind.coverage, num.reads)
+  
   # 2. By mapping quality
   ind.mapQ <- 
     which(as.numeric(res.sam.realn[["mapQ"]][ind.sam.realn][ind.coverage]) >=
             mapQ.thold)
+  
+  checkEmpty(ind.mapQ)
+  printResults("mapping quality", ind.mapQ, num.reads)
   
   # 3. By edit distance
   ## Correcting entry containign mismatching positions 
@@ -129,15 +135,8 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
   ind.exactMatch <- which(editDistance == 0)
   ind.edit <- which(editDistance <= editDist.thold)
   
-  if (!is.null(num.reads)) {
-    cat("After filtering: found ", length(ind.edit), " module combinations in ",
-        num.reads, " reads (", 
-        round(length(ind.edit) * 100 / num.reads, digits = 2), "%).\n", sep = "")
-  } else {
-    cat("After filtering: found ", length(ind.edit), " module combinations.\n", 
-        sep = "")
-  }
-  
+  checkEmpty(ind.edit)
+  printResults("mapping quality", ind.edit, num.reads)
   
   res.sam.filt <- 
     mclapply(res.sam.realn, function(x) x[ind.sam.realn][ind.coverage][
@@ -145,3 +144,25 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
   
   return(list(res.sam.filt, editDistance, ind.edit))
 }
+
+checkEmpty <- function(ind) {
+  
+  if (length(ind) == 0) {
+    stop("None of the alignments meets the filtering criteria")
+  }
+}
+
+printResults <- function(filter, ind, num.reads) {
+  
+  if (!is.null(num.reads)) {
+    cat("After filtering alignments by ", filter, ": found ", length(ind), 
+        " module combinations in ", num.reads, " reads (", 
+        round(length(ind.edit) * 100 / num.reads, digits = 2), "%).\n", 
+        sep = "")
+  } else {
+    cat("After filtering alignments by ", filter, ": found ", length(ind.edit), 
+        " module combinations.\n", sep = "")
+  }
+  
+}
+
