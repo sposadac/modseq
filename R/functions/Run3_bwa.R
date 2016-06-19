@@ -187,7 +187,7 @@ Run3_bwa <- function(reads.file, in.modDir, mod.filename, bwa.path, bwa.cVal,
               paste(out.filename.run3, "_forIndelRealigner.intervals", 
                     sep = ""))
   system(paste("java -jar ", gatk, " -T RealignerTargetCreator -R ", mod.file, 
-               " -I ", bam.file, " -o ", out.file, sep = ""))
+               " -I ", bam.file, " -o ", out.file, " -nt ", num.cores, sep = ""))
   cat("Output file: \"", out.file,"\".\n", sep = "")
   
   ## Realignment
@@ -197,7 +197,7 @@ Run3_bwa <- function(reads.file, in.modDir, mod.filename, bwa.path, bwa.cVal,
               paste(out.filename.run3, "_realigned.bam", sep = ""))
   system(paste("java -jar ", gatk, " -T IndelRealigner -R ", mod.file, " -I ",
                bam.file, " -targetIntervals ", out.file, " -o ", realign.file,                 
-               sep = ""))  
+               " -nt ", num.cores, sep = ""))  
   cat("Output file: \"", realign.file,"\".\n", sep = "")
   
   ## Converting BAM to SAM
