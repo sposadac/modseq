@@ -56,7 +56,7 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
     which(leftclipped <= coverage.left & rightclipped <= coverage.right) 
   
   checkEmpty(ind.coverage)
-  printResults("coverage", ind.coverage, num.reads)
+  printResults(filter = "coverage", ind = ind.coverage, num.reads = num.reads)
   
   # 2. By mapping quality
   ind.mapQ <- 
@@ -64,7 +64,7 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
             mapQ.thold)
   
   checkEmpty(ind.mapQ)
-  printResults("mapping quality", ind.mapQ, num.reads)
+  printResults(filter = "mapping quality", ind = ind.mapQ, num.reads = num.reads)
   
   # 3. By edit distance
   ## Correcting entry containign mismatching positions 
@@ -136,7 +136,7 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
   ind.edit <- which(editDistance <= editDist.thold)
   
   checkEmpty(ind.edit)
-  printResults("mapping quality", ind.edit, num.reads)
+  printResults(filter = "edit distance", ind = ind.edit, num.reads = num.reads)
   
   res.sam.filt <- 
     mclapply(res.sam.realn, function(x) x[ind.sam.realn][ind.coverage][
@@ -157,10 +157,10 @@ printResults <- function(filter, ind, num.reads) {
   if (!is.null(num.reads)) {
     cat("After filtering alignments by ", filter, ": found ", length(ind), 
         " module combinations in ", num.reads, " reads (", 
-        round(length(ind.edit) * 100 / num.reads, digits = 2), "%).\n", 
+        round(length(ind) * 100 / num.reads, digits = 2), "%).\n", 
         sep = "")
   } else {
-    cat("After filtering alignments by ", filter, ": found ", length(ind.edit), 
+    cat("After filtering alignments by ", filter, ": found ", length(ind), 
         " module combinations.\n", sep = "")
   }
   
