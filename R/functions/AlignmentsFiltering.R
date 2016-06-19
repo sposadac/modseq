@@ -157,10 +157,10 @@ printResults <- function(filter, ind, num.reads) {
   if (!is.null(num.reads)) {
     cat("After filtering alignments by ", filter, ": found ", length(ind), 
         " module combinations in ", num.reads, " reads (", 
-        round(length(ind.edit) * 100 / num.reads, digits = 2), "%).\n", 
+        round(length(ind) * 100 / num.reads, digits = 2), "%).\n", 
         sep = "")
   } else {
-    cat("After filtering alignments by ", filter, ": found ", length(ind.edit), 
+    cat("After filtering alignments by ", filter, ": found ", length(ind), 
         " module combinations.\n", sep = "")
   }
   
