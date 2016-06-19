@@ -95,7 +95,7 @@ Run3_bwa <- function(reads.file, in.modDir, mod.filename, bwa.path, bwa.cVal,
   if (!file.exists(out.file)) {
     cat("Local realignment - Creating sequence dictionary for the reference", 
         "sequences ...\n")
-    system(paste("java -jar ", picard, " CreateSequenceDictionary R=", 
+    system(paste("java -XX:ParallelGCThreads=", num.cores, " -jar ", picard, " CreateSequenceDictionary R=", 
                  mod.file,  " O=", out.file, sep = ""))
     cat("Output file: \"", out.file,"\".\n", sep = "")
   }
@@ -135,7 +135,7 @@ Run3_bwa <- function(reads.file, in.modDir, mod.filename, bwa.path, bwa.cVal,
   
   if (!file.exists(bamSort.file)) {
     cat("Local realignment - Sorting bam file by coordinates .. \n")
-    system(paste("java -jar ", picard, " SortSam INPUT=", bam.file, 
+    system(paste("java -XX:ParallelGCThreads=", num.cores, " -jar ", picard, " SortSam INPUT=", bam.file, 
                  " OUTPUT=", bamSort.file, " SORT_ORDER=coordinate", sep = ""))
     cat("Output file: \"", bamSort.file,"\".\n", sep = "")
   }
@@ -149,7 +149,7 @@ Run3_bwa <- function(reads.file, in.modDir, mod.filename, bwa.path, bwa.cVal,
     out.file <- file.path(out.dir, 
                           paste(out.filename.run3, "_metrics.txt", sep = ""))
     cat("Local realignment - Mark read duplicates ... \n")
-    system(paste("java -jar ", picard, " MarkDuplicates INPUT=", bamSort.file,
+    system(paste("java -XX:ParallelGCThreads=", num.cores, " -jar ", picard, " MarkDuplicates INPUT=", bamSort.file,
                  " OUTPUT=", bam.file, " METRICS_FILE=", out.file, sep = ""))
     cat("Output files: \n")
     cat("Alignment file (bam format): \"", bam.file, "\".\n", sep = "")
@@ -163,14 +163,14 @@ Run3_bwa <- function(reads.file, in.modDir, mod.filename, bwa.path, bwa.cVal,
   ## Add or replace read groups
   out.file <- file.path(out.dir, 
                         paste(out.filename.run3, "_readGroup.bam", sep = ""))
-  system(paste("java -jar ", picard, " AddOrReplaceReadGroups INPUT=", 
+  system(paste("java -XX:ParallelGCThreads=", num.cores, " -jar ", picard, " AddOrReplaceReadGroups INPUT=", 
                bam.file, " OUTPUT=", out.file, " RGID=group1 RGLB=lib1 ", 
                "RGPL=illumina RGPU=unit1 RGSM=sample1", sep = ""))
   cat("Output file: \"", out.file,"\".\n", sep = "")
   
   ## Indexing bam file
   system(
-    paste("java -jar ", picard, " BuildBamIndex INPUT=", out.file, sep = ""))
+    paste("java -XX:ParallelGCThreads=", num.cores, " -jar ", picard, " BuildBamIndex INPUT=", out.file, sep = ""))
   
   
   ## Intervals for realignment
