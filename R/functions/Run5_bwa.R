@@ -159,7 +159,7 @@ Run5_bwa <- function(mod.comb, patterns, res.sam.filt=NULL, aux.modDist=NULL,
   leftclipped <- as.integer(res.sam.filt[["refPOS"]][ind.edit] - 1)
   
   
-  ### 2. Identification of mismatches 
+  ### 2. Identification of mismatches (pileup approach)
   if (mismatch.filter) { 
     sourceCpp(
       file.path(modseq.dir, 
@@ -324,7 +324,7 @@ Run5_bwa <- function(mod.comb, patterns, res.sam.filt=NULL, aux.modDist=NULL,
   write.csv(as.data.frame(substitution.modDist.poisson), file = out.file)
   
   
-  ### 4. Identification of short indels
+  ### 4. Identification of short indels (pileup approach)
   sourceCpp(file.path(modseq.dir, "src/indelsAlongReferenceSpace.cpp"))
   indel.modPos <- mcmapply(
     FUN = indelsAlongReferenceSpace, cigar_ops = cigar.ops,
