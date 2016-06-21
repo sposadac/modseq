@@ -1,5 +1,10 @@
 LoadModuleTable <- function(in.modulesDir, modules.filename=NULL, list=FALSE) {
   
+  ## Function arguments
+  # in.modulesDir     Path to table of modules. It can be either the path to  
+  #                   table of modules or the absolute path, including the name 
+  #                   and file extension of the input file.
+  
   if (is.null(modules.filename)) {
     in.file <- file.path(in.modulesDir)
   } else{
