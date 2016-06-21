@@ -8,8 +8,8 @@ library(ShortRead)
 library(ggplot2)
 # NOTES: Install libraries grid and gridExtra - Required and loaded in function 
 #        IlluminaStat.
-#        Install libraries fmsb and scales - Required and loaded in run 3 and 4.
-#        Install library Rcpp - Required and loaded in run 5.
+#        Install library scales - Required and loaded in run 3 and 4.
+#        Install library Rcpp   - Required and loaded in run 5.
 
 ###############################################################################
 ###                         USER-DEFINED OPTIONS                            ###
@@ -62,7 +62,7 @@ mod.filename <- "Modules"  #.csv extension
 #               in the variant discovery module should be output (Default:FALSE)
 out.dir      <- "/Users/susanap/Documents/ModSeq/modseq/output"
 out.filename <- "4_GTGAA_L001" 
-out.ssplot   <- TRUE
+out.ssplot   <- FALSE
 out.varFiles <- FALSE
 
 ########################## QUALITY TRIMMING options ###########################
@@ -115,7 +115,7 @@ map.mode <- "bwa"
 # "K" "V" "H" "D" "B" "N" "-" "+" "."
 # 
 gls.ambiguity <- TRUE
-gls.direction <- "f"
+gls.direction <- "r"
 gls.mma       <- 0
 
 ## bwa mem

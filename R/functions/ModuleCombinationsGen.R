@@ -1,16 +1,16 @@
 ModuleCombinationsGen <- function(modules.filename, pattern=character(0), 
-                                  out.file=NULL, in.modDir=NULL, modseq.dir=NULL, 
+                                  in.modDir=NULL, modseq.dir=NULL, out.file=NULL, 
                                   num.cores=numeric(0)) {
   
   ## Function arguments
   # modules.filename  Character. Name of the file containing table of modules.
-  # patterns          (optional) Data frame containing the sequences of the 
+  # pattern           (optional) Data frame containing the sequences of the 
   #                   various variants per module. Columns correspond to 
   #                   different modules and rows correspond to variants 
   #                   identifiers. 
-  # in.modDir         (optional) Expected when patterns or out.file are not 
+  # in.modDir         (optional) Expected when pattern or out.file are not 
   #                   provided.
-  # modseq.dir        (optional) Expected when patterns are not provided.
+  # modseq.dir        (optional) Expected when pattern are not provided.
   # num.cores         (optional) number of cores available for performing 
   #                   parallel tasks.
   
@@ -30,12 +30,13 @@ ModuleCombinationsGen <- function(modules.filename, pattern=character(0),
   }
   
   ## Loading module table
-  if (!is.data.frame(patterns)) {
+  if (!is.data.frame(pattern)) {
     if (!existsFunction("LoadModuleTable")) {
       source(file.path(modseq.dir, "R/functions/LoadModuleTable.R"))
     }
-    pattern <- LoadModuleTable(in.modulesDir = in.modDir,
-                                modules.filename = modules.filename) 
+    pattern <- 
+      LoadModuleTable(in.modulesDir = in.modDir,
+                      modules.filename = modules.filename, list = FALSE) 
   }
   
   Modules.modComb <- expand.grid(mclapply(as.list(pattern), na.omit))
@@ -63,9 +64,6 @@ ModuleCombinationsGen <- function(modules.filename, pattern=character(0),
   names(Modules.modComb) <- rownames
   
   if (is.null(out.file)) {
-    if (is.null(in.modDir)) {
-      in.modDir <- getwd() 
-    }
     out.file <- file.path(in.modDir, 
                           paste(modules.filename, "_modComb.fasta", sep = ""))
   }

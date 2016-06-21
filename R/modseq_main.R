@@ -395,8 +395,9 @@ if (run[4] == 1) {
       }
       
       ModuleCombinationsGen(modules.filename = mod.filename, pattern = patterns, 
-                            out.file = mod.file, in.modDir = in.modDir, 
-                            modseq.dir = modseq.dir, num.cores = num.cores)
+                            in.modDir = in.modDir, modseq.dir = modseq.dir, 
+                            out.file = mod.file, num.cores = num.cores)
+      
     }
     
     cat("Reading reference sequences ... \n")
@@ -503,8 +504,8 @@ if (run[5] == 1) {
         }
         
         ModuleCombinationsGen(modules.filename = mod.filename, pattern = patterns, 
-                              out.file = mod.file, in.modDir = in.modDir, 
-                              modseq.dir = modseq.dir, num.cores = num.cores)
+                              in.modDir = in.modDir, modseq.dir = modseq.dir, 
+                              out.file = mod.file,  num.cores = num.cores)
       }
       
       cat("Reading reference sequences ... \n")
