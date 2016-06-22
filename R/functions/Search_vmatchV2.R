@@ -38,13 +38,14 @@ SearchPatListID <- function(hitsList.names, hitsList, pat, input.data, mm = 0,
 }
 
 SearchPatID <- function(pat, subj, mm, ambiguous.match){
-  # Arguments
-  # pat - character
-  # subj - BioString class
-  # mm - integer
-  # ambiguous.match - bool
+  
+  ## Function arguments
+  # pat               Character.
+  # subj              Object of class BioString.
+  # mm                Integer -- maximum mismatches allowed.
+  # ambiguous.match   Bool
   if(pat != "") {  # Evaluate empty option
-    # TODO: make sure you are returning integers
+    ## **TODO**: make sure it is returning integers
     temp <- vcountPattern(pat, subj, max.mismatch = mm, fixed = !ambiguous.match)
     patRC <- toupper(SF_patternrc(pat))
     temp <- temp + vcountPattern(patRC, subj, max.mismatch = mm, 
@@ -69,7 +70,7 @@ PatCounts <- function(list, filename, mod, mod.tot, num.cores = numeric(0)) {
   res <- data.frame("seq"    = c(names(res.aux), "total"), 
                     "counts" = c(unlist(res.aux, use.names = FALSE), tot))
   # colnames(res) <- paste("Module ", mod, " of ", mod.tot, sep = "" )
-  write.csv(res,paste("./OUTPUT/", filename, "_round_", mod, "_of_", mod.tot, 
+  write.csv(res, paste(out.dir, filename, "_round_", mod, "_of_", mod.tot, 
                       ".csv", sep = ""), row.names = FALSE)
   return(tot)
 }
