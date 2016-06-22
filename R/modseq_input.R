@@ -20,8 +20,8 @@ run.info <- paste("ModSeq | ", format(Sys.time(),"%Y%m%d"), sep = "")
 ## Which option to run (0=OFF, 1=ON)
 run <- rep(0,5)
 run[1] <- 1  # Pre-processing (quality trimming) and plots.
-run[2] <- 0  # Run paired-end read assembly.
-run[3] <- 0  # Run pattern search / Read mapping.
+run[2] <- 1  # Run paired-end read assembly.
+run[3] <- 1  # Run pattern search / Read mapping.
 run[4] <- 0  # Run analysis on the search (library composition, modular variants
              # abundacies)
 run[5] <- 0  # Run variant calling (mismatches and short indels)
@@ -96,7 +96,7 @@ pandaseq.path <- character(0)
 ############################ READ MAPPING options #############################
 # map.mode: Options bwa, gls - Grep-like search, and grPA - greedy search/
 #           Pairwise alignement. By default bwa.
-map.mode <- "bwa"
+map.mode <- "gls"
 
 ## Grep-like search options
 # gls.ambiguity: Options - TRUE or FALSE. If TRUE (default), an ambiguous

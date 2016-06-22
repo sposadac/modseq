@@ -25,9 +25,15 @@
     out.dir <- getwd()
   }
    
-  source(file.path(modseq.dir, "R/functions/Search_vmatchV2.R"))
-  source(file.path(modseq.dir, "R/functions/PlotModuleCounts.R"))
-  source(file.path(modseq.dir, "R/functions/VariantCountsPerRound.R"))
+  if (!existsFunction("Search_vmatchV2")) {
+    source(file.path(modseq.dir, "R/functions/Search_vmatchV2.R"))
+  }
+  if (!existsFunction("PlotModuleCounts")) {
+    source(file.path(modseq.dir, "R/functions/PlotModuleCounts.R"))
+  }
+  if (!existsFunction("VariantCountsPerRound")) {
+    source(file.path(modseq.dir, "R/functions/VariantCountsPerRound.R"))
+  }
   
   if (length(num.cores) == 0) {
     num.cores <- detectCores()
@@ -75,8 +81,9 @@
         mode = "f", ambiguous.match = gls.ambiguity, num.cores = num.cores, 
         mc.cores = num.cores)
       res.list <- unlist(res.list, recursive = FALSE)
-      res.counts[i+1] <- PatCounts(res.list, res.counts.filename, i, mod.tot,
-                                   num.cores) 
+      res.counts[i+1] <- 
+        PatCounts(list = res.list, filename = res.counts.filename, mod = i,
+                  mod.tot = mod.tot, out.dir = out.dir, num.cores = num.cores) 
       cat("Mod. ", i, "/", mod.tot, "\t", res.counts[i+1], "\n", sep = "")
       
       if (mem.trace) {
@@ -97,8 +104,9 @@
         ambiguous.match = gls.ambiguity, num.cores = num.cores, 
         mc.cores = num.cores)
       res.list <- unlist(res.list, recursive = FALSE)
-      res.counts[i+1] <- PatCounts(res.list, res.counts.filename, i, 
-                                   mod.tot, num.cores)
+      res.counts[i+1] <- 
+        PatCounts(list = res.list, filename = res.counts.filename, mod = i, 
+                  mod.tot = mod.tot, out.dir = out.dir, num.cores = num.cores)
       cat("Mod. ", i, "/", mod.tot, "\t", res.counts[i+1], "\n", sep = "")
       
       if (mem.trace) {
