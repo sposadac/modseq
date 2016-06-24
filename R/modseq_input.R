@@ -96,7 +96,7 @@ pandaseq.path <- character(0)
 ############################ READ MAPPING options #############################
 # map.mode: Options bwa, gls - Grep-like search, and grPA - greedy search/
 #           Pairwise alignement. By default bwa.
-map.mode <- "gls"
+map.mode <- "bwa"
 
 ## Grep-like search options
 # gls.ambiguity: Options - TRUE or FALSE. If TRUE (default), an ambiguous

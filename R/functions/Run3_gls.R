@@ -1,8 +1,8 @@
- Run3_gls <- function(patterns=NULL, reads, num.reads=NULL, in.modDir, 
-                      mod.filename, res.listName, res.counts.filename, 
-                      gls.ambiguity=TRUE, gls.direction="f", gls.mma=0, 
-                      mem.trace=FALSE, memTrace=NULL, run.info="ModSeq", 
-                      modseq.dir=NULL, out.dir=NULL, num.cores=numeric(0)) {
+Run3_gls <- function(patterns=NULL, reads, num.reads=NULL, in.modDir, 
+                     mod.filename, res.listName, res.counts.filename, 
+                     gls.ambiguity=TRUE, gls.direction="f", gls.mma=0, 
+                     mem.trace=FALSE, memTrace=NULL, run.info="ModSeq", 
+                     modseq.dir=NULL, out.dir=NULL, num.cores=numeric(0)) {
   
   # **TODO**: verbose level (display info per search round?)
   # **TODO**: map.mode pairwise alignment
