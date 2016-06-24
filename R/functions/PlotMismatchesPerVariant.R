@@ -48,8 +48,7 @@ PlotMismatchesPerVariant <- function(substitution.modPos, ind, mod.len, var,
     
     pl.base <- ggplot(df, aes(x = pos, fill = subst, colour = subst))
     pl <- pl.base + 
-      stat_bin(position = "stack", binwidth = 1, origin = -0.5, drop = FALSE, 
-               width = 0.6) + 
+      stat_count(position = "stack", width = 0.6) + 
       scale_x_discrete(breaks = seq(1, mod.len[var], 1), 
                        labels = s2c(patterns[var]), 
                        name   = "Bases per position\n") +
@@ -82,8 +81,7 @@ PlotMismatchesPerVariant <- function(substitution.modPos, ind, mod.len, var,
                       sep = ""))
                 
     pl.norm <- pl.base + 
-      stat_bin(position = "stack", binwidth = 1, origin = -0.5, drop = FALSE,
-               width = 0.6) +
+      stat_count(position = "stack", width = 0.6) +
       scale_x_discrete(breaks = seq(1, mod.len[var], 1), 
                        labels = s2c(patterns[var]), 
                        name = "\nBases per position") +
