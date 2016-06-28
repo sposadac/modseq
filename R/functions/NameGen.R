@@ -23,19 +23,25 @@ if (qtrim.flag == 0 && run[1] == 0) {  # Untrimmed reads
 
 if (map.mode == "gls") {
   res.counts.filename <- out.filename.run2
+  res.listName <- out.filename.run2
   out.filename.run3 <- paste(out.filename.run2, "_gls", sep = "")
-  if (paired.flag == 1 || run[2] == 1) {  # Paired reads
-    res.listName <- out.filename.run2
-  } else { 
-    # Unpaired reads (trimmed or untrimmed) 
-    if (paired.file == "f") {
-      res.counts.filename <- paste(res.counts.filename, "_1", sep = "")
-      res.listName <- paste(res.counts.filename, "_1", sep = "")
-    } else if (paired.file == "r") {
-      res.counts.filename <- paste(res.counts.filename, "_2", sep = "")
-      res.listName <- paste(res.counts.filename, "_2", sep = "")
-    } 
+  # Nonpaired (PE-mode) reads (trimmed or untrimmed)
+  # NOTE: In PE-mode, one can choose to run the gls search in the forward set
+  #       of reads (forward file) or reverse set of reads (reverse file). 
+  #       An alternative is to use the SE-mode and give the corresponding file 
+  #       as the in.filename. 
+  if (seq.mode == "PE")  {
+    if (paired.flag == 0 || run[2] == 0) {
+      if (paired.file == "f") {
+        res.counts.filename <- paste(res.counts.filename, "_1", sep = "")
+        res.listName <- paste(res.listName, "_1", sep = "")
+      } else if (paired.file == "r") {
+        res.counts.filename <- paste(res.counts.filename, "_2", sep = "")
+        res.listName <- paste(res.listName, "_2", sep = "")
+      } 
+    }
   }
+  
   
   if (gls.ambiguity == FALSE) {
     res.counts.filename <- paste(res.counts.filename, "_woN", sep = "")
@@ -52,6 +58,7 @@ if (map.mode == "gls") {
     res.listName <- paste(res.listName, "_gls_reverse", sep = "")
   }
   res.counts.filename <- paste(res.counts.filename, "_ModCounts", sep = "")
+  
 } else if (map.mode == "bwa") {
   out.filename.run3 <- paste(out.filename.run2, "_bwaMEM", sep = "")
   if (bwa.dupl) {

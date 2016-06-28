@@ -130,8 +130,10 @@ if (run[1] == 1) {
   qtrim.flag <- as.integer(1) 
   cat("Object \'qtrim.flag\' is set to ", qtrim.flag,".\n", sep = "")
   
+  keep <- append(keep, "num.reads")
+  
   if (run[2] == 1) {
-    keep <- append(keep, c("num.reads", "readF1.nQtrim", "IlluminaStat"))
+    keep <- append(keep, c("readF1.nQtrim", "IlluminaStat"))
     if (seq.mode == "PE") {
       keep <- append(keep, c("readF2.nQtrim"))
     }
