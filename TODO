@@ -5,18 +5,27 @@ Author: Susana Posada Cespedes
 -> fastq file after paired-end, read mapping and filtering
 -> Simulated data: use read simulators, such as GemSim 
 -> Consider using beta-binomial test of strand bias to account for systematic sequencing errors
+-> Test run (function to subsample reads available, but not incorporated in an automatized way)
 
 Run2_bwa
 -> Remove hyphen separating pairs of unmerged reads (Cases in which pandaseq failed). If the hyphen is not removed, the sam file is not output properly (CIGAR and read sequence are of different lenth - truncated file)
 
+Run3
+-> Test ngshmmalign
+
 Run3_gls
 -> Verbose level fo run3
 -> Map.mode using pairwise alignment
--> mismatch allowance per module (at the moment perfect match or max. allowance per search round)
+-> Mismatch allowance per module (at the moment perfect match or max. allowance per search round)
+-> Mclapply -- Problem when running in euler 
+
+Run3_bwa
+-> Split read mapping: module table w.o empty modules and then run bwa on unaligned reads including module combinations with empty modules 
 
 Run4_bwa
 -> Exclude duplicates in the distribution (flags 1024, 1040)?
 -> Plot of the progression of the alignment filtering
+-> Plot of the distribution of start position and end position (combined with automatic option to choose the threshold)
 
 Run5_bwa
 -> For reads that are realigned, the MD is not provided (it is used for the pileup model) 
