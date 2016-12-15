@@ -272,10 +272,11 @@ if (run[3] == 1) {
     source(file.path(modseq.dir, "R/functions/Run3_gls.R"))
     retList <- Run3_gls(
       patterns=patterns, reads=reads.subj, num.reads=num.reads, in.modDir, 
-      mod.filename, res.listName, res.counts.filename,  
-      gls.ambiguity = gls.ambiguity, gls.direction = gls.direction, 
-      gls.mma = gls.mma, mem.trace = mem.trace, memTrace = memTrace, 
-      run.info = run.info, modseq.dir = modseq.dir, out.dir = out.dir, num.cores = num.cores)
+      mod.filename, res.listName, res.counts.filename, 
+      gls.ambiguity=gls.ambiguity, gls.direction=gls.direction, gls.mma=gls.mma,
+      mem.trace=mem.trace, memTrace=memTrace, run.info=run.info, 
+      modseq.dir=modseq.dir, out.dir=out.dir, num.cores=num.cores
+      )
     
     res.list <- retList[[1]]
     if (length(retList) > 1) {

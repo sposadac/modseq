@@ -100,17 +100,17 @@ Run3_gls <- function(patterns=NULL, reads, num.reads=NULL, in.modDir,
       
       res.list <- mclapply(
         names(res.list), FUN = SearchPatListID, hitsList = res.list, 
-        pat = patterns[i], input.data = reads, mm = gls.mma, mode = "r", 
-        ambiguous.match = gls.ambiguity, num.cores = num.cores, 
-        mc.cores = num.cores)
+        pat=patterns[i], input.data=reads, mm=gls.mma, mode="r", 
+        ambiguous.match=gls.ambiguity, num.cores=num.cores, 
+        mc.cores=num.cores)
       res.list <- unlist(res.list, recursive = FALSE)
       res.counts[i+1] <- 
-        PatCounts(list = res.list, filename = res.counts.filename, mod = i, 
-                  mod.tot = mod.tot, out.dir = out.dir, num.cores = num.cores)
-      cat("Mod. ", i, "/", mod.tot, "\t", res.counts[i+1], "\n", sep = "")
+        PatCounts(list=res.list, filename=res.counts.filename, mod=i, 
+                  mod.tot=mod.tot, out.dir=out.dir, num.cores=num.cores)
+      cat("Mod. ", i, "/", mod.tot, "\t", res.counts[i+1], "\n", sep="")
       
       if (mem.trace) {
-        memList <- c(memList,format(object.size(res.list), units = "MB"))
+        memList <- c(memList,format(object.size(res.list), units="MB"))
         memTrace <- c(memTrace, MemTrace())
       } 
       
@@ -118,12 +118,12 @@ Run3_gls <- function(patterns=NULL, reads, num.reads=NULL, in.modDir,
   }
   
   cat("Runtime:", round(as.numeric(
-    difftime(Sys.time(), ti.search, units = "mins")), digits = 4), "min.\n")
+    difftime(Sys.time(), ti.search, units="mins")), digits=4), "min.\n")
   cat("Pattern search completed!\n")
   
   ## Exporting list containing results of the read mapping as R object 
   out.file <- 
-    file.path(out.dir, paste("resList_", res.listName, ".rda", sep = ""))
+    file.path(out.dir, paste("resList_", res.listName, ".rda", sep=""))
   cat("Exporting list containing results of the read mapping: \"", out.file,
       "\".\n", sep = "")
   save(res.list, file = out.file)
@@ -136,7 +136,7 @@ Run3_gls <- function(patterns=NULL, reads, num.reads=NULL, in.modDir,
   ## Reformatting counts as data.frame
   res.counts <- data.frame(
     "round" = 
-      c("Input-data", paste("Mod. ", seq_len(mod.tot), "/", mod.tot, sep ="")),
+      c("Input-data", paste("Mod. ", seq_len(mod.tot), "/", mod.tot, sep="")),
     "counts" = res.counts)
   
   if (gls.direction == "r") { 
@@ -145,34 +145,34 @@ Run3_gls <- function(patterns=NULL, reads, num.reads=NULL, in.modDir,
       factor(res.counts$round, 
              levels = c(levels(res.counts$round)[1], 
                         rev(levels(res.counts$round)[2:(mod.tot+1)])))
-    counts <- c(res.counts$counts[1], rev(tail(res.counts$counts, n = mod.tot)))
+    #counts <- c(res.counts$counts[1], rev(tail(res.counts$counts, n = mod.tot)))
     cat("Found ", res.counts[2, 2], " module combinations in ", num.reads,
-        " reads (", round(res.counts[2, 2] * 100 / num.reads, digits = 2), 
-        "%).\n", sep = "")
+        " reads (", round(res.counts[2, 2] * 100 / num.reads, digits=2), 
+        "%).\n", sep="")
     
   } else {
     
-    counts <- res.counts$counts
-    mod.comb.tot <- tail(res.counts, n = 1)[[2]] #res.counts[nrow(res.counts), 2]
+    #counts <- res.counts$counts
+    mod.comb.tot <- tail(res.counts$counts, n = 1)
     cat("Found ", mod.comb.tot, " module combinations in ", num.reads, " reads (", 
-        round(mod.comb.tot * 100 / num.reads, digits = 2), "%).\n", sep = "")
+        round(mod.comb.tot * 100 / num.reads, digits = 2), "%).\n", sep="")
     
   }
   
-  ### Module-counts plot
+  ### Plot of read-counts per search round
   out.file <- 
-    file.path(out.dir, paste(res.counts.filename, "_graph.pdf", sep = ""))
-  cat("Printing module-counts plot as: \"", out.file, "\".\n", sep = "")
-  PlotModuleCounts(res.counts, x.var = "round", y.var = "counts", 
-                   ymax = max(res.counts$counts), out.file, 
-                   plot.label = run.info, gls.ambiguity = gls.ambiguity)
+    file.path(out.dir, paste(res.counts.filename, "_graph.pdf", sep=""))
+  cat("Printing module-counts plot as: \"", out.file, "\".\n", sep="")
+  PlotModuleCounts(res.counts, x.var="round", y.var="counts", 
+                   ymax=max(res.counts$counts), out.file, 
+                   plot.label=run.info, gls.ambiguity=gls.ambiguity)
   
   ### Distribution of modular variants per search round
   VariantCountsPerRound(
-    patterns = patterns, num.reads = num.reads, counts = counts, 
-    labels = levels(res.counts$round), file.prefix = res.counts.filename,
-    out.dir = out.dir, gls.direction = gls.direction, modseq.dir = modseq.dir, 
-    num.cores = num.cores
+    patterns=patterns, num.reads=num.reads, 
+    counts=res.counts$counts[res.counts$round], labels=levels(res.counts$round), 
+    file.prefix=res.counts.filename, out.dir=out.dir, 
+    gls.direction=gls.direction, modseq.dir=modseq.dir, num.cores=num.cores
     )
 
   if (sum(gls.mma > 0) > 0) {
