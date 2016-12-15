@@ -52,6 +52,14 @@ AlignmentsFiltering <- function(mod.comb, res.sam.realn, bwa.dupl=TRUE,
     width(mod.comb[res.sam.realn[["refID"]][ind.sam.realn]]) - 
     cigarWidthAlongReferenceSpace(res.sam.realn[["CIGAR"]][ind.sam.realn]) -
     leftclipped
+  
+  ## Automatic choosing the thresholds:
+  # 1. Mean + 1 s.d
+  # 2. Max threshold within length of first and last module
+  if (coverage.left == "auto" || coverage.right == "auto") {
+    coverage.left <- ceiling(mean(leftclipped) + sd(leftclipped))
+    coverage.right <- ceiling(mean(rightclipped) + sd(rightclipped))
+  }
   ind.coverage <- 
     which(leftclipped <= coverage.left & rightclipped <= coverage.right) 
   

@@ -29,9 +29,9 @@ if (map.mode == "gls") {
   # NOTE: In PE-mode, one can choose to run the gls search in the forward set
   #       of reads (forward file) or reverse set of reads (reverse file). 
   #       An alternative is to use the SE-mode and give the corresponding file 
-  #       as the in.filename. 
+  #       as the in.filename (RECOMMENDED). 
   if (seq.mode == "PE")  {
-    if (paired.flag == 0 || run[2] == 0) {
+    if (paired.flag == 0 && run[2] == 0) {
       if (paired.file == "f") {
         res.counts.filename <- paste(res.counts.filename, "_1", sep = "")
         res.listName <- paste(res.listName, "_1", sep = "")

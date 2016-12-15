@@ -5,7 +5,7 @@ PlotQualityDistribution <- function(reads, out.filename, out.dir, title=NULL) {
     file.path(out.dir, 
               paste(out.filename, "_averageQualityDistribution_graph.pdf",
                     sep = ""))
-  cat("Plotting the distribution of average quality scores per reads as: \"",
+  cat("Plotting the distribution of average quality scores per read as: \"",
       out.file, "\".\n", sep = "")
   avQual <- alphabetScore(reads) / width(reads)
   avQual <- as.data.frame("x" = avQual)

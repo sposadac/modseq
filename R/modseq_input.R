@@ -20,8 +20,8 @@ run.info <- paste("ModSeq | ", format(Sys.time(),"%Y%m%d"), sep = "")
 ## Which option to run (0=OFF, 1=ON)
 run <- rep(0,5)
 run[1] <- 1  # Pre-processing (quality trimming) and plots.
-run[2] <- 1  # Run paired-end read assembly.
-run[3] <- 1  # Run pattern search / Read mapping.
+run[2] <- 0  # Run paired-end read assembly.
+run[3] <- 0  # Run pattern search / Read mapping.
 run[4] <- 0  # Run analysis on the search (library composition, modular variants
              # abundacies)
 run[5] <- 0  # Run variant calling (mismatches and short indels)
@@ -49,7 +49,7 @@ reverse.filename <- "4_GTGAA_L001_R2_001"  # fastq format (for seq.mode = "PE").
 # mod.filename: name of module-table file without explicitly specifying 
 #               the file extension (format: csv).
 #               Table-header: names of modules, 
-#               first row: name of variants or origin.
+#               first column: name of variants or origin.
 in.modDir    <- "/Users/susanap/Documents/ModSeq/modseq/data/modules/" 
 mod.filename <- "Modules"  #.csv extension 
 
@@ -96,7 +96,7 @@ pandaseq.path <- character(0)
 ############################ READ MAPPING options #############################
 # map.mode: Options bwa, gls - Grep-like search, and grPA - greedy search/
 #           Pairwise alignement. By default bwa.
-map.mode <- "bwa"
+map.mode <- "gls"
 
 ## Grep-like search options
 # gls.ambiguity: Options - TRUE or FALSE. If TRUE (default), an ambiguous
@@ -135,12 +135,12 @@ samtools.path <- character(0)
 
 ## Filtering (0,Inf)
 # Filtering options should be greater than 0.
-# coverage.left:  default 0.
-# coverage.right: default 0.
+# coverage.left:  default "auto".
+# coverage.right: default "auto".
 # mapQ.thold:     default 8.
 # editDist.thold: default 8.
-coverage.left  <- 0  # leftclipped <= coverage.left
-coverage.right <- 0  # rightclipped <= coverage.right
+coverage.left  <- "auto"  # leftclipped <= coverage.left
+coverage.right <- "auto"  # rightclipped <= coverage.right
 mapQ.thold     <- 8  # mapQ >= maQ.thold
 editDist.thold <- 8  # editDistance <= editDist.thold
 
