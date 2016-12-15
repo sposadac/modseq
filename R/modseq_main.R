@@ -422,10 +422,10 @@ if (run[4] == 1) {
     
     source(file.path(modseq.dir, "R/functions/Run4_gls.R"))
     Run4_gls(
-      patterns = patterns, mod.comb = mod.comb, res.listName = res.listName, 
-      res.list = res.list, res.list.ids = res.list.ids, 
-      res.list.lengths = res.list.lengths, out.filename = out.filename.run3,
-      modseq.dir = modseq.dir, out.dir = out.dir, num.cores = num.cores
+      patterns=patterns, mod.comb=mod.comb, res.listName=res.listName, 
+      res.list=res.list, res.list.ids=res.list.ids, 
+      res.list.lengths=res.list.lengths, out.filename=out.filename.run3,
+      modseq.dir=modseq.dir, out.dir=out.dir, num.cores=num.cores
       )
 
   } else if (map.mode == "bwa") { 

@@ -63,20 +63,24 @@ Run4_gls <- function(patterns, mod.comb, res.listName, res.list=NULL,
     }
     retList <- 
       ParseInfoResultsList(res.list = res.list, mod.comb = mod.comb, 
-                           mod.comb.len = mod.comb.len, num.cores = num.cores)
+                           num.cores = num.cores)
     res.list.lengths <- retList[[1]]
     res.list.ids <- retList[[2]]
     
   }
-  
-  res.list.seq <- 
+ 
+  res.ids <- 
+    unlist(mcmapply(function (x,n) rep(x,n), x = res.list.ids,
+                    n = res.list.lengths, USE.NAMES = FALSE, 
+                    mc.cores = num.cores), use.names = FALSE) 
+  res.seq <- 
     unlist(mcmapply(function (x,n) rep(x,n), x = names(res.list),
                     n = res.list.lengths, USE.NAMES = FALSE, 
                     mc.cores = num.cores), use.names = FALSE)
-  
+
   out.table <- data.frame("Read ID" = unlist(res.list, use.names = FALSE),
-                          "Reference ID" = res.list.ids, 
-                          "Reference sequence" = res.list.seq,
+                          "Reference ID" = res.ids, 
+                          "Reference sequence" = res.seq,
                           stringsAsFactors = FALSE)
   out.file <- 
     file.path(out.dir, 
@@ -109,5 +113,13 @@ Run4_gls <- function(patterns, mod.comb, res.listName, res.list=NULL,
   PlotModuleCombinationsDistribution(data = df.mod.dstr, x.var = "x", 
                                      y.var = "y", out.file = out.file)
   
+  out.table <- data.frame("Reference ID" = res.list.ids, 
+                          "Counts" = res.list.lengths,
+                          stringsAsFactors = FALSE)
+  out.file <- 
+    file.path(out.dir, 
+              paste(res.listName, "_ModCounts_table.csv", sep = ""))
+  cat("Exporting: \"", out.file, "\" ... \n", sep = "")
+  write.csv(out.table, file = out.file)
 
 }
