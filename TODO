@@ -12,7 +12,7 @@ Run2_bwa
 -> Remove hyphen separating pairs of unmerged reads (Cases in which pandaseq failed). If the hyphen is not removed, the sam file is not output properly (CIGAR and read sequence are of different lenth - truncated file)
 
 Run3
--> Test ngshmmalign
+-> Test ngshmmalign: in order to map reads to most likely module combination use hamming distance (note that the position with respect to reference is defined by the msa)
 
 Run3_gls
 -> Verbose level fo run3

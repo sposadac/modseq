@@ -21,8 +21,8 @@ run.info <- paste("ModSeq | ", format(Sys.time(),"%Y%m%d"), sep = "")
 run <- rep(0,5)
 run[1] <- 0  # Pre-processing (quality trimming) and plots.
 run[2] <- 0  # Run paired-end read assembly.
-run[3] <- 0  # Run pattern search / Read mapping.
-run[4] <- 1  # Run analysis on the search (library composition, modular variants
+run[3] <- 1  # Run pattern search / Read mapping.
+run[4] <- 0  # Run analysis on the search (library composition, modular variants
              # abundacies)
 run[5] <- 0  # Run variant calling (mismatches and short indels)
 

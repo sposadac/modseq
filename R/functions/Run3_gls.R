@@ -189,15 +189,15 @@ Run3_gls <- function(patterns=NULL, reads, num.reads=NULL, in.modDir,
   
   ### Plot of repeated hits (reads that were mapped to several 
   #   module-combination)
-  aux <- unlist(res.list, use.names = FALSE)
+  read.ids <- unlist(res.list, use.names = FALSE)
   
-  if (sum(duplicated(aux)) > 0) {
+  if (sum(duplicated(read.ids)) > 0) {
     
     source(file.path(modseq.dir, "R/functions/RepeatedHits.R"))
-    retList <- RepeatedHits(res.list, data = aux, patterns = patterns, 
-                            num.reads = num.reads, in.modDir, mod.filename,
-                            res.listName, out.dir, modseq.dir = modseq.dir,
-                            num.cores = num.cores)
+    retList <- RepeatedHits(res.list, read.ids=read.ids, patterns=patterns, 
+                            num.reads=num.reads, in.modDir, mod.filename,
+                            res.listName, out.dir, modseq.dir=modseq.dir,
+                            num.cores=num.cores)
     mod.comb <- retList[[1]]
     res.list.lengths <- retList[[2]]
     res.list.names <- retList[[3]]
