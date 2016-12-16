@@ -62,25 +62,22 @@ Run4_gls <- function(patterns, mod.comb, res.listName, res.list=NULL,
       source(file.path(modseq.dir, "R/functions/ParseInfoResultsList.R"))
     }
     retList <- 
-      ParseInfoResultsList(res.list = res.list, mod.comb = mod.comb, 
+      ParseInfoResultsList(res.list = res.list, mod.comb = mod.comb, unfold.ids=TRUE, 
                            num.cores = num.cores)
     res.list.lengths <- retList[[1]]
-    res.list.ids <- retList[[2]]
+    res.list.ids     <- retList[[2]]
+    ref.ids          <- retList[[3]]
     
   }
  
-  res.ids <- 
-    unlist(mcmapply(function (x,n) rep(x,n), x = res.list.ids,
-                    n = res.list.lengths, USE.NAMES = FALSE, 
-                    mc.cores = num.cores), use.names = FALSE) 
-  res.seq <- 
+  ref.seq <- 
     unlist(mcmapply(function (x,n) rep(x,n), x = names(res.list),
                     n = res.list.lengths, USE.NAMES = FALSE, 
                     mc.cores = num.cores), use.names = FALSE)
 
   out.table <- data.frame("Read ID" = unlist(res.list, use.names = FALSE),
-                          "Reference ID" = res.ids, 
-                          "Reference sequence" = res.seq,
+                          "Reference ID" = ref.ids, 
+                          "Reference sequence" = ref.seq,
                           stringsAsFactors = FALSE)
   out.file <- 
     file.path(out.dir, 

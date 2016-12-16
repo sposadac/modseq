@@ -1,5 +1,5 @@
-ParseInfoResultsList <- function(res.list,  mod.comb = character(0), seq2id = FALSE,
-                                 num.cores = numeric(0)) {
+ParseInfoResultsList <- function(res.list,  mod.comb=character(0), unfold.ids=FALSE, 
+                                 num.cores=numeric(0)) {
   
   ## Function arguments
   #  mod.comb     Variable of type DNAStringSet containing sequences of the module
@@ -40,5 +40,17 @@ ParseInfoResultsList <- function(res.list,  mod.comb = character(0), seq2id = FA
     
   }
   
-  return(list(res.list.lengths, res.list.ids))
+  if (unfold.ids) {
+    
+    ref.ids <- unlist(mcmapply(function (x,n) rep(x,n), x=res.list.ids, 
+                               n=res.list.lengths, USE.NAMES=FALSE, 
+                               mc.cores=num.cores), use.names=FALSE)
+    return(list(res.list.lengths, res.list.ids, ref.ids))
+    
+  } else {
+    
+    return(list(res.list.lengths, res.list.ids))
+    
+  }
+  
 }

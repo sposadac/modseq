@@ -78,20 +78,15 @@ RepeatedHits <- function(res.list, read.ids=NULL, patterns=NULL, num.reads,
   mod.comb <- readDNAStringSet(mod.file)
 
   ## Number of hits per module combination
-  retList <-
-    ParseInfoResultsList(res.list=res.list, mod.comb=mod.comb,
-                         num.cores=num.cores)
+  retList <- ParseInfoResultsList(res.list=res.list, mod.comb=mod.comb, unfold.ids=TRUE, 
+                                  num.cores=num.cores)
   res.list.lengths <- retList[[1]]
-  res.list.ids <- retList[[2]]
-  
-  res.ids <- 
-    unlist(mcmapply(function (x,n) rep(x,n), x = res.list.ids,
-                    n = res.list.lengths, USE.NAMES = FALSE, 
-                    mc.cores = num.cores), use.names = FALSE) 
+  res.list.ids     <- retList[[2]]
+  ref.ids          <- retList[[3]]
 
   rep.hits <- names(rep.tab[rep.tab > 1])
   aux.rep.hits <-
-    unlist(mclapply(rep.hits, function(x) res.ids[which(read.ids == x)],
+    unlist(mclapply(rep.hits, function(x) ref.ids[which(read.ids == x)],
                     mc.cores= num.cores))
   df.rep.hits <- data.frame("readID" = rep(rep.hits, rep.tab[rep.tab > 1]),
                             "refID"  = aux.rep.hits,
