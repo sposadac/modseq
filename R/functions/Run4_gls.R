@@ -1,5 +1,5 @@
 Run4_gls <- function(patterns, mod.comb, res.listName, res.list=NULL,  
-                     res.list.ids=NULL, res.list.lengths=NULL,  out.filename, 
+                     res.list.ids=NULL, res.list.lengths=NULL, out.filename, 
                      modseq.dir=NULL, out.dir=NULL, num.cores=numeric(0)) {
   
   ## Function arguments
@@ -62,23 +62,23 @@ Run4_gls <- function(patterns, mod.comb, res.listName, res.list=NULL,
       source(file.path(modseq.dir, "R/functions/ParseInfoResultsList.R"))
     }
     retList <- 
-      ParseInfoResultsList(res.list = res.list, mod.comb = mod.comb, unfold.ids=TRUE, 
-                           num.cores = num.cores)
-    res.list.lengths <- retList[[1]]
-    res.list.ids     <- retList[[2]]
-    ref.ids          <- retList[[3]]
+      ParseInfoResultsList(res.list=res.list, mod.comb=mod.comb, unfold.ids=TRUE, 
+                           num.cores=num.cores)
+    res.list.lengths <- retList$res.list.lengths
+    res.list.ids     <- retList$res.list.ids
+    ref.ids          <- retList$ref.ids
+    rm(retList)
     
   }
  
   ref.seq <- 
-    unlist(mcmapply(function (x,n) rep(x,n), x = names(res.list),
-                    n = res.list.lengths, USE.NAMES = FALSE, 
-                    mc.cores = num.cores), use.names = FALSE)
+    unlist(mcmapply(function (x,n) rep(x,n), x=names(res.list),
+                    n=res.list.lengths, USE.NAMES=FALSE, 
+                    mc.cores = num.cores), use.names=FALSE)
 
-  out.table <- data.frame("Read ID" = unlist(res.list, use.names = FALSE),
-                          "Reference ID" = ref.ids, 
-                          "Reference sequence" = ref.seq,
-                          stringsAsFactors = FALSE)
+  out.table <- data.frame("Read ID"=unlist(res.list, use.names=FALSE),
+                          "Reference ID"=ref.ids, "Reference sequence"=ref.seq,
+                          stringsAsFactors=FALSE)
   out.file <- 
     file.path(out.dir, 
               paste(res.listName, "_readMapping_table.csv", sep = ""))
@@ -87,10 +87,9 @@ Run4_gls <- function(patterns, mod.comb, res.listName, res.list=NULL,
   
   ###### 2: Last search round: Distribution of modular variants
   ## Number of hits per modular variant in the last search round
-  VariantFrequencies(
-    data = res.list.ids, patterns = patterns, 
-    num.hits = length(unlist(res.list)), out.filename = out.filename,
-    modseq.dir = modseq.dir, out.dir = out.dir, num.cores = num.cores
+  VariantFrequencies(data=ref.ids, patterns=patterns, 
+    num.hits=sum(res.list.lengths), out.filename=out.filename,
+    modseq.dir=modseq.dir, out.dir=out.dir, num.cores=num.cores
     )
   
   ##### 3: Distribution of module combinations
@@ -98,25 +97,25 @@ Run4_gls <- function(patterns, mod.comb, res.listName, res.list=NULL,
   cat("Number of module combinations with at least one hit: ", 
       length(mod.dstr), " of ", mod.comb.len, ". \n", sep = "")
   
-  df.mod.dstr <- data.frame("x" = seq_len(mod.comb.len) * 100 / mod.comb.len, 
-                            "y" = mod.dstr)
+  df.mod.dstr <- data.frame("x"=seq_len(mod.comb.len) * 100 / mod.comb.len, 
+                            "y"=mod.dstr)
   
   out.file <- 
     file.path(out.dir, 
               paste(out.filename, "_ModComb_distribution_graph.pdf", sep = ""))
   cat("Plotting distribution of module combinations: \"", out.file, "\". \n", 
-      sep = "")
+      sep="")
 
-  PlotModuleCombinationsDistribution(data = df.mod.dstr, x.var = "x", 
-                                     y.var = "y", out.file = out.file)
+  PlotModuleCombinationsDistribution(data=df.mod.dstr, x.var="x", 
+                                     y.var="y", out.file=out.file)
   
-  out.table <- data.frame("Reference ID" = res.list.ids, 
-                          "Counts" = res.list.lengths,
-                          stringsAsFactors = FALSE)
+  out.table <- 
+    data.frame("Reference ID"=res.list.ids, "Counts"=res.list.lengths,
+               stringsAsFactors=FALSE)
   out.file <- 
     file.path(out.dir, 
-              paste(res.listName, "_ModCounts_table.csv", sep = ""))
-  cat("Exporting: \"", out.file, "\" ... \n", sep = "")
-  write.csv(out.table, file = out.file)
+              paste(res.listName, "_ModCounts_table.csv", sep=""))
+  cat("Exporting: \"", out.file, "\" ... \n", sep="")
+  write.csv(out.table, file=out.file)
 
 }

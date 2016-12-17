@@ -80,13 +80,10 @@ RepeatedHits <- function(res.list, read.ids=NULL, patterns=NULL, num.reads,
   ## Number of hits per module combination
   retList <- ParseInfoResultsList(res.list=res.list, mod.comb=mod.comb, unfold.ids=TRUE, 
                                   num.cores=num.cores)
-  res.list.lengths <- retList[[1]]
-  res.list.ids     <- retList[[2]]
-  ref.ids          <- retList[[3]]
 
   rep.hits <- names(rep.tab[rep.tab > 1])
   aux.rep.hits <-
-    unlist(mclapply(rep.hits, function(x) ref.ids[which(read.ids == x)],
+    unlist(mclapply(rep.hits, function(x) retList$ref.ids[which(read.ids == x)],
                     mc.cores= num.cores))
   df.rep.hits <- data.frame("readID" = rep(rep.hits, rep.tab[rep.tab > 1]),
                             "refID"  = aux.rep.hits,
@@ -119,6 +116,6 @@ RepeatedHits <- function(res.list, read.ids=NULL, patterns=NULL, num.reads,
       round(length(rep.tab) / num.reads * 100, digits = 2), "%).\n",
       sep = "")
 
-  return(list(mod.comb, res.list.lengths, res.list.ids))
-
+  return(list("mod.comb"=mod.comb, "res.list.lengths"=retList$res.list.lengths,
+              "res.list.ids"=retList$res.list.ids, "ref.ids"=retList$ref.ids))
 }

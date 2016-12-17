@@ -278,14 +278,18 @@ if (run[3] == 1) {
       modseq.dir=modseq.dir, out.dir=out.dir, num.cores=num.cores
       )
     
-    res.list <- retList[[1]]
+    res.list <- retList$res.list
     if (length(retList) > 1) {
-      mod.comb <- retList[[2]]
-      res.list.lengths <- retList[[3]]
-      res.list.ids <- retList[[4]]
+      
+      mod.comb         <- retList$mod.comb
+      res.list.lengths <- retList$res.list.lengths
+      res.list.ids     <- retList$res.list.ids
+      ref.ids          <- retList$ref.ids
+      rm(retList)
+      
       if (run[4] == 1) {
         keep <- append(keep, c("mod.comb", "res.list.lengths", "res.list.ids", 
-                               "GetVariantsNames")) 
+                               "ref.ids", "GetVariantsNames")) 
       }
     } 
   
@@ -467,6 +471,15 @@ if (run[4] == 1) {
   
   if (exists("res.list")) {
     rm(res.list)
+  }
+  if (exists("res.list.ids")) {
+    rm(res.list.ids)
+  }
+  if (exists("res.list.lengths")) {
+    rm(res.list.lengths)
+  }
+  if (exists("ref.ids")) {
+    rm(ref.ids)
   }
 }
 

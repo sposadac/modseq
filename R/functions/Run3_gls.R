@@ -198,17 +198,17 @@ Run3_gls <- function(patterns=NULL, reads, num.reads=NULL, in.modDir,
                             num.reads=num.reads, in.modDir, mod.filename,
                             res.listName, out.dir, modseq.dir=modseq.dir,
                             num.cores=num.cores)
-    mod.comb <- retList[[1]]
-    res.list.lengths <- retList[[2]]
-    res.list.names <- retList[[3]]
     
-    return(list(res.list, mod.comb, res.list.lengths, res.list.names))
+    return(list("res.list"=res.list, "mod.comb"=retList$mod.comb, 
+                "res.list.lengths"=retList$res.list.lengths, 
+                "res.list.ids"=retList$res.list.ids, 
+                "ref.ids"=retList$ref.ids))
     
   } else {
     
     cat("All mapped reads are mapped exactly 1 time (i.e., mapped to 1 ",
         "module-combination). \n")
-    return(list(res.list))
+    return(list("res.list"=res.list))
     
   }
 

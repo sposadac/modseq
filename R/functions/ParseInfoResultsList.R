@@ -45,11 +45,12 @@ ParseInfoResultsList <- function(res.list,  mod.comb=character(0), unfold.ids=FA
     ref.ids <- unlist(mcmapply(function (x,n) rep(x,n), x=res.list.ids, 
                                n=res.list.lengths, USE.NAMES=FALSE, 
                                mc.cores=num.cores), use.names=FALSE)
-    return(list(res.list.lengths, res.list.ids, ref.ids))
+    return(list("res.list.lengths"=res.list.lengths, "res.list.ids"=res.list.ids, 
+                "ref.ids"=ref.ids))
     
   } else {
     
-    return(list(res.list.lengths, res.list.ids))
+    return(list("res.list.lengths"=res.list.lengths, "res.list.ids"=res.list.ids))
     
   }
   
